@@ -43,22 +43,36 @@ class Board
   end
 
   class Intersection
-    @paths = []
     def initialize(id)
       @id = id
+      @paths = []
     end
 
     def add_path(path)
-      raise "Attempted to add too many paths!" if @paths >= 3
+      raise "Attempted to add too many paths!" if @paths.length >= 3
       @paths << path
     end
   end
 
   class Path
+    @@paths = []
+    def self.dump_paths 
+      puts "from |  to |"
+      Board::Path.paths.each do |path|
+        foo = path.instance_variable_get :@intersections
+        foo.each do |intersection|
+          print " #{"%3d" % intersection.instance_variable_get(:@id)} |"
+        end
+        print "\n"
+      end
+      nil
+    end
+    def self.clear_paths; @@paths = []; end
     def initialize(intersection1, intersection2, sailable = false)
       @intersections = [intersection1, intersection2]
       @intersections.each { |intersection| intersection.add_path self }
       @sailable = sailable
+      @@paths << self
     end
   end
 
@@ -68,6 +82,7 @@ class Board
   # Hex and square sizes defined by top border.
   # 
   def initialize(map_size = 4, map_type = :hex)
+    Board::Path.clear_paths # For debugging
     @hex_store = HexStore.new
 
     hex_shaped_map(map_size)
@@ -98,6 +113,23 @@ class Board
       else
         sum
       end
+    end
+
+    @intersections = []
+    intersections.times do |i|
+      @intersections << Intersection.new(i)
+    end
+
+    # two-path intersections
+    
+    upper_left_ids = (0..size).collect {|x|2*x}.inject([0]) { |ary,n| ary << ary[-1] + n }
+    upper_left_ids.shift # first one was dummy
+    upper_left_ids.each_with_index do |id, index|
+      break if index == size
+      lower_index = upper_left_ids[index+1]+1
+      lower_index = upper_left_ids[index+1] if index == size-1
+      Path.new(@intersections[id], @intersections[id+1])
+      Path.new(@intersections[id], @intersections[lower_index])
     end
 
   end
@@ -175,16 +207,5 @@ class Board
       print [row, rowNums].transpose.flatten.join
       print "\n"
     end
-
-#    '
-#       _
-#     _/1\_
-#   _/2\1/2\_
-#  /3\1/3\2/3\
-#  \1/4\2/4\3/
-#    \1/5\2/
-#      \1/
-#    '
-    render
   end
 end
