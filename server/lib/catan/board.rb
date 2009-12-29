@@ -84,7 +84,7 @@ class Board
 
     row_array.each_with_index do |length, row|
       @hex_store.new_row = (1..length).collect do |offset|
-        Hex.new(rand(12), :desert, row+1, offset)
+        Hex.new(rand(12), :desert, row, offset)
       end
     end
 
@@ -125,6 +125,7 @@ class Board
       print "_#{[row, offsets].transpose.flatten.join}_"
       print "\n"
     end
+    spaces -= 2
 
     rows[size-1...rows.length-size+1].each_with_index do |row, row_index|
         next if row_index % 2 == 1
@@ -159,8 +160,7 @@ class Board
         print "\n"
     end
 
-spaces = 0
-
+    spaces += 1
     rows[rows.length-size+1...rows.length].each_with_index do |row, row_index|
       rowNums = []
       row.collect! do |hex|
