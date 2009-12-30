@@ -55,7 +55,7 @@ class Board
   end
 
   class Path
-    @@paths = []
+    @@paths = [] # For debugging
     def self.dump_paths 
       puts "from |  to |"
       Board::Path.paths.each do |path|
@@ -68,6 +68,7 @@ class Board
       nil
     end
     def self.clear_paths; @@paths = []; end
+
     def initialize(intersection1, intersection2, sailable = false)
       @intersections = [intersection1, intersection2]
       @intersections.each { |intersection| intersection.add_path self }
@@ -90,6 +91,11 @@ class Board
 
   def hex_shaped_map(size)
 
+    #
+    # Build hexes
+    #
+
+    # Define rows of hexes
     row_array = (1...size).to_a
     tmp = row_array.reverse.clone
     (2*size-3).times do |i| 
@@ -97,12 +103,18 @@ class Board
     end
     row_array = row_array + tmp
 
+    # Create hexes
     row_array.each_with_index do |length, row|
       @hex_store.new_row = (1..length).collect do |offset|
         Hex.new(rand(12), :desert, row, offset)
       end
     end
 
+    #
+    # Build intersections
+    #
+
+    # Count intersections
     intersections = (2..(2*size)).inject(0) do |sum, n|
       if (n%2).zero?
         if n == 2*size
@@ -115,13 +127,17 @@ class Board
       end
     end
 
+    # Create intersections
     @intersections = []
     intersections.times do |i|
       @intersections << Intersection.new(i)
     end
 
-    # two-path intersections
+    # 
+    # Build paths
+    #
     
+    # Walk from the top to the upper left corner
     upper_left_ids = (0..size).collect {|x|2*x}.inject([0]) { |ary,n| ary << ary[-1] + n }
     upper_left_ids.shift # first one was dummy
     upper_left_ids.each_with_index do |id, index|
