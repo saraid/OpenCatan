@@ -148,6 +148,16 @@ class Board
       Path.new(@intersections[id], @intersections[lower_index])
     end
 
+    # Step down
+    current_position = upper_left_ids[-1]+(2*size)
+    Path.new(@intersections[upper_left_ids[-1]], @intersections[current_position])
+    (1..size).collect {|x|2*x}.reverse_each { |step|
+      Path.new(@intersections[current_position], @intersections[current_position+1])
+      new_position = current_position + 1 - step
+      Path.new(@intersections[current_position+1], @intersections[new_position])
+      current_position = new_position
+    }
+
   end
   private :hex_shaped_map
 
