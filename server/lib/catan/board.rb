@@ -46,6 +46,7 @@ class Board
       return if @intersections.include? intersection
       raise "Attempted to fill in too many intersections!" if @intersections.length >= 6
       @intersections << intersection
+      intersection.connect_with_hex(self)
     end
 
     def notify_with_resource
