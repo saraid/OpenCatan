@@ -38,6 +38,10 @@ class Board
     attr_reader :row, :offset
     attr_reader :intersections
 
+    def to_s
+      "#{@row} #{@offset}"
+    end
+
     def fill_intersection(intersection)
       return if @intersections.include? intersection
       raise "Attempted to fill in too many intersections!" if @intersections.length >= 6
@@ -52,15 +56,16 @@ class Board
   end
 
   class Intersection
+    include Comparable
     def initialize(id)
       @identifier = id
       @paths = []
       @hexes = []
     end
-    attr_reader :identifier
+    attr_reader :identifier, :paths
 
-    def ==(other)
-      @identifier == other.identifier
+    def <=>(other)
+      @identifier <=> other.identifier
     end
 
     def connect_with_hex(hex)
@@ -82,7 +87,7 @@ class Board
       Board::Path.paths.each do |path|
         foo = path.instance_variable_get :@intersections
         foo.each do |intersection|
-          print " #{"%3d" % intersection.instance_variable_get(:@id)} |"
+          print " #{"%3d" % intersection.instance_variable_get(:@identifier)} |"
         end
         print "\n"
       end
@@ -91,10 +96,15 @@ class Board
     def self.clear_paths; @@paths = []; end
 
     def initialize(intersection1, intersection2, sailable = false)
-      @intersections = [intersection1, intersection2]
+      @intersections = [intersection1, intersection2].sort
       @intersections.each { |intersection| intersection.add_path self }
       @sailable = sailable
       @@paths << self
+    end
+    attr_reader :intersections, :sailable
+
+    def to_s
+      "[#{@intersections.collect { |x| x.identifier }.join ' '}]"
     end
 
     def ==(other)
@@ -218,7 +228,13 @@ class Board
     #
 
     @hex_store.hexes.each do |hex|
-      
+      intersections = hex.intersections
+      Path.new(intersections[0], intersections[1])
+      Path.new(intersections[1], intersections[3])
+      Path.new(intersections[3], intersections[5])
+      Path.new(intersections[5], intersections[4])
+      Path.new(intersections[4], intersections[2])
+      Path.new(intersections[2], intersections[0])
     end
 
   end
