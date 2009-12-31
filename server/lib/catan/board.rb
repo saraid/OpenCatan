@@ -4,35 +4,44 @@ class Board
     def initialize
       @rows = []
     end
+    attr_reader :rows
 
     def new_row=(row)
       @rows << row
     end
 
-    def rows
-      @rows
-    end
-
     def length
       @rows.length
+    end
+
+    def fetch(row, offset)
+      rv = @rows[row][offset]
+      puts "#{row} #{offset}" if rv.nil?
+      rv
+    end
+
+    def hexes
+      @rows.flatten
     end
   end
 
   class Hex
-    @filled_intersections = []
 
     def initialize(number, type, row, offset)
       @number = number
       @type   = type
       @row    = row
       @offset = offset
+      @intersections = []
     end
     attr_reader :number, :type
     attr_reader :row, :offset
+    attr_reader :intersections
 
-    def fill_intersection(settlement)
-      raise "Attempted to fill in too many intersections!" if @filled_intersections.length >= 6
-      @filled_intersections << settlement
+    def fill_intersection(intersection)
+      return if @intersections.include? intersection
+      raise "Attempted to fill in too many intersections!" if @intersections.length >= 6
+      @intersections << intersection
     end
 
     def notify_with_resource
@@ -44,11 +53,23 @@ class Board
 
   class Intersection
     def initialize(id)
-      @id = id
+      @identifier = id
       @paths = []
+      @hexes = []
+    end
+    attr_reader :identifier
+
+    def ==(other)
+      @identifier == other.identifier
+    end
+
+    def connect_with_hex(hex)
+      raise "Attempted to add too many hexes!" if @hexes.length >= 3
+      @hexes << hex
     end
 
     def add_path(path)
+      return if @paths.include? path
       raise "Attempted to add too many paths!" if @paths.length >= 3
       @paths << path
     end
@@ -74,6 +95,10 @@ class Board
       @intersections.each { |intersection| intersection.add_path self }
       @sailable = sailable
       @@paths << self
+    end
+
+    def ==(other)
+      @intersections.all? { |i| other.instance_variable_get(:@intersections).include? i }
     end
   end
 
@@ -105,7 +130,7 @@ class Board
 
     # Create hexes
     row_array.each_with_index do |length, row|
-      @hex_store.new_row = (1..length).collect do |offset|
+      @hex_store.new_row = (0...length).collect do |offset|
         Hex.new(rand(12), :desert, row, offset)
       end
     end
@@ -129,37 +154,80 @@ class Board
 
     # Create intersections
     @intersections = []
-    intersections.times do |i|
-      @intersections << Intersection.new(i)
+    intersections.times do |id|
+      @intersections << Intersection.new(id)
     end
 
-    # 
-    # Build paths
-    #
+    # Define rows of intersections
+    intersection_array = (2..(2*size)).select {|x|(x%2).zero?}
+    tmp = intersection_array.reverse.clone
+    (2*size-3).times do intersection_array << intersection_array[-1] end
+    intersection_array = intersection_array + tmp
     
-    # Walk from the top to the upper left corner
-    upper_left_ids = (0..size).collect {|x|2*x}.inject([0]) { |ary,n| ary << ary[-1] + n }
-    upper_left_ids.shift # first one was dummy
-    upper_left_ids.each_with_index do |id, index|
-      break if index == size
-      lower_index = upper_left_ids[index+1]+1
-      lower_index = upper_left_ids[index+1] if index == size-1
-      Path.new(@intersections[id], @intersections[id+1])
-      Path.new(@intersections[id], @intersections[lower_index])
+    # Pattern A - X0XX0XX0...
+    # Pattern B - XX0XX0XX...
+    intersection_index = 0
+    intersection_array.each_with_index do |intersection_count, row_index|
+      if row_index < size
+        intersection_count.times do |offset|
+          @hex_store.fetch(row_index, offset / 2).fill_intersection @intersections[intersection_index]
+          if offset > 0 && offset < intersection_count-1
+            @hex_store.fetch(row_index - 1, (offset - 1) / 2).fill_intersection @intersections[intersection_index] 
+          end
+          if offset > 1 && offset < intersection_count-2
+            @hex_store.fetch(row_index - 2, (offset - 2) / 2).fill_intersection @intersections[intersection_index] 
+          end
+          intersection_index += 1
+        end
+      elsif row_index >= size && row_index < intersection_array.length-size
+        if (size + row_index) % 2 == 0 # Pattern A
+          intersection_count.times do |offset|
+            @hex_store.fetch(row_index - 1, offset / 2).fill_intersection @intersections[intersection_index]
+            if offset > 0 && offset < intersection_count-1
+              @hex_store.fetch(row_index, (offset - 1) / 2).fill_intersection @intersections[intersection_index]
+              @hex_store.fetch(row_index - 2, (offset - 1) / 2).fill_intersection @intersections[intersection_index] 
+            end
+            intersection_index += 1
+          end
+        else                           # Pattern B
+          intersection_count.times do |offset|
+            @hex_store.fetch(row_index - 2, offset / 2).fill_intersection @intersections[intersection_index]
+            if offset > 0 && offset < intersection_count-1
+              @hex_store.fetch(row_index - 1, (offset - 1) / 2).fill_intersection @intersections[intersection_index]
+            end
+            @hex_store.fetch(row_index, offset / 2).fill_intersection @intersections[intersection_index]
+            intersection_index += 1
+          end
+        end
+      else 
+        intersection_count.times do |offset|
+          @hex_store.fetch(row_index - 2, offset / 2).fill_intersection @intersections[intersection_index] 
+          if offset > 0 && offset < intersection_count-1
+            @hex_store.fetch(row_index - 1, (offset - 1) / 2).fill_intersection @intersections[intersection_index] 
+          end
+          if offset > 1 && offset < intersection_count-2
+            @hex_store.fetch(row_index, (offset - 2) / 2).fill_intersection @intersections[intersection_index] 
+          end
+          intersection_index += 1
+        end
+      end
     end
 
-    # Step down
-    current_position = upper_left_ids[-1]+(2*size)
-    Path.new(@intersections[upper_left_ids[-1]], @intersections[current_position])
-    (1..size).collect {|x|2*x}.reverse_each { |step|
-      Path.new(@intersections[current_position], @intersections[current_position+1])
-      new_position = current_position + 1 - step
-      Path.new(@intersections[current_position+1], @intersections[new_position])
-      current_position = new_position
-    }
+    #
+    # Create paths
+    #
+
+    @hex_store.hexes.each do |hex|
+      
+    end
 
   end
   private :hex_shaped_map
+
+  def dump_intersections
+instance_variable_get(:@hex_store).rows.each do |x| x.each do |h| print '['; h.instance_variable_get(:@intersections).each do |i| print i.instance_variable_get(:@identifier); print ' '; end; print ']' end; puts; end;
+  nil
+  end
 
   def render_ascii
     size = (@hex_store.length + 5)/4
