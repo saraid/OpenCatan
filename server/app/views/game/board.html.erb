@@ -1,0 +1,49 @@
+<html>
+<head>
+<title>Bob</title>
+<style type="text/css">
+  canvas { 
+    border: solid 2px black; 
+  }
+</style>
+<script type="text/javascript" src="/javascripts/jquery.js"></script>
+<script type="text/javascript" src="/javascripts/board.js?<%= rand(100000) %>"></script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    Catan.Draw.loop = function() {
+    <% map_top = 50 -%>
+    <% @board.hex_store.rows.each_with_index do |row, row_index| 
+         row.each_with_index do |hex, offset| 
+          x = 400 - (60 * row.length) + (60 * offset * 2)
+          y = map_top + 34 * row_index
+    -%>
+      Catan.Draw.draw_hex(<%= x %>, <%= y %>, 40, "rgb(200,0,0)");
+    <%   end
+       end 
+    -%>
+/*
+      Catan.Draw.draw_hex(340,  50, 40, "rgb(200,0,0)");
+      Catan.Draw.draw_hex(280,  84, 40, "rgb(0,0,200)");
+      Catan.Draw.draw_hex(400,  84, 40, "rgb(0,200,0)");
+      Catan.Draw.draw_hex(340, 118, 40, "rgb(200,200,0)");
+      Catan.Draw.draw_hex(280, 152, 40, "rgb(200,0,0)");
+      Catan.Draw.draw_hex(400, 152, 40, "rgb(0,0,200)");
+      Catan.Draw.draw_hex(340, 186, 40, "rgb(0,200,0)");
+
+      Catan.Draw.draw_hex(220, 118, 40, "rgb(0,200,0)");
+      Catan.Draw.draw_hex(220, 186, 40, "rgb(0,0,200)");
+      Catan.Draw.draw_hex(280, 220, 40, "rgb(200,200,0)");
+      Catan.Draw.draw_hex(340, 254, 40, "rgb(0,0,200)");
+      Catan.Draw.draw_hex(400, 220, 40, "rgb(200,0,0)");
+      Catan.Draw.draw_hex(460, 118, 40, "rgb(200,0,0)");
+      Catan.Draw.draw_hex(460, 186, 40, "rgb(200,200,0)");
+*/
+    };
+    Catan.Draw.init();
+  });
+</script>
+</head>
+<body>
+<canvas id="board" width="800" height="400"></canvas>
+</body>
+</html>
