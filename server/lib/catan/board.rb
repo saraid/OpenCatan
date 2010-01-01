@@ -124,6 +124,7 @@ class Board
     Board::Path.clear_paths # For debugging
     @hex_store = HexStore.new
     map_size = map_size.to_i
+    map_size = 2 if map_size < 2
 
     hex_shaped_map(map_size)
   end
