@@ -3,7 +3,7 @@
 <title>Bob</title>
 <style type="text/css">
   canvas { 
-    border: solid 2px black; 
+    border: solid 10px black; 
   }
 </style>
 <script type="text/javascript" src="/javascripts/jquery.js"></script>
@@ -13,7 +13,7 @@
     Catan.Draw.loop = function() {
     <% 
       vertical_padding = 50 
-      hex_size = 40
+      hex_size = (params[:hex_size] || 40).to_i
       canvas_width = hex_size*4*(@board.hex_store.rows.max { |a,b| a.length <=> b.length }.length) - hex_size
       x_offset = hex_size * 3 / 2
       canvas_height = (vertical_padding * 2) + (hex_size * 1.732).floor*((@board.hex_store.rows.length + 1) / 2)
@@ -23,14 +23,14 @@
           x = (canvas_width / 2) - (x_offset * row.length) + (x_offset * offset * 2) + hex_size / 2
           y = vertical_padding + (hex_size * 0.866).floor * row_index
     -%>
-      Catan.Draw.draw_hex(<%= x %>, <%= y %>, <%= hex_size %>, 
+      Catan.Draw.draw_hex(<%= x %>, <%= y %>, <%= hex_size %>,
                           "rgb(<%= Catan::HEX_TYPES[hex.type][:color].join(',') %>)",
                           <%= hex.number %>, "<%= hex.type %>");
     <%   end
        end 
     -%>
     };
-    Catan.Draw.init();
+    Catan.Draw.init(<%= hex_size %>, { top: <%= vertical_padding %>, left: <%= x_offset %> });
   });
 </script>
 </head>
