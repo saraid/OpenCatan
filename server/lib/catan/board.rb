@@ -1,3 +1,5 @@
+require 'catan/catan'
+
 class Board
 
   class HexStore
@@ -121,9 +123,11 @@ class Board
   def initialize(map_size = 4, map_type = :hex)
     Board::Path.clear_paths # For debugging
     @hex_store = HexStore.new
+    map_size = map_size.to_i
 
     hex_shaped_map(map_size)
   end
+  attr_reader :hex_store
 
   def hex_shaped_map(size)
 
@@ -139,10 +143,19 @@ class Board
     end
     row_array = row_array + tmp
 
+    # Create distribution
+    seed_array = Catan::HEX_TYPES.collect { |key, value| key if value[:produces] }.compact
+    terrain_distribution = []
+    row_array.inject(0) { |sum, n| sum + n }.times do |i|
+      terrain_distribution << seed_array[i % seed_array.length]
+    end
+    terrain_distribution.randomize!
+    terrain_distribution[rand(terrain_distribution.length)] = :desert
+
     # Create hexes
     row_array.each_with_index do |length, row|
       @hex_store.new_row = (0...length).collect do |offset|
-        Hex.new(rand(12), :desert, row, offset)
+        Hex.new(rand(12), terrain_distribution.shift, row, offset)
       end
     end
 

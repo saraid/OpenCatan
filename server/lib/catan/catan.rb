@@ -1,3 +1,5 @@
+require 'ext/array'
+
 class Catan
 
   RESOURCES = {
@@ -9,12 +11,12 @@ class Catan
   }.freeze
 
   HEX_TYPES = {
-    :desert    => nil,
-    :forest    => :wood,
-    :plains    => :sheep,
-    :field     => :wheat,
-    :mountains => :ore,
-    :hills     => :clay,
-    :water     => nil,
+    :desert    => {:produces => nil,    :color => [255, 222, 173] },
+    :forests   => {:produces => :wood,  :color => [34, 139, 34]   },
+    :plains    => {:produces => :sheep, :color => [0, 255, 127]   },
+    :fields    => {:produces => :wheat, :color => [255, 223, 0]   },
+    :mountains => {:produces => :ore,   :color => [112, 128, 144] },
+    :hills     => {:produces => :clay,  :color => [233, 116, 81]  },
+    :water     => {:produces => nil,    :color => [0, 127, 255]   }
   }.freeze
 end

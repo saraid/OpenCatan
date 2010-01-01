@@ -9,7 +9,7 @@ Catan.Draw.init = function(origin) {
   //setInterval(this.loop, 10);
   this.loop();
 }
-Catan.Draw.draw_hex = function(x, y, edge, color) {
+Catan.Draw.draw_hex = function(x, y, edge, color, number, type) {
   this.context.fillStyle = color;
   this.context.beginPath();
   var vertices = [[x + (edge / 2)    , y],
@@ -22,5 +22,9 @@ Catan.Draw.draw_hex = function(x, y, edge, color) {
   for (i = 0; i < 6; i++)
     this.context.lineTo(vertices[i][0], vertices[i][1]);
   this.context.fill();
+
+  this.context.textAlign = "center";
+  this.context.font = "12px Times";
+  this.context.fillStyle = "black";
+  this.context.fillText(type, x + edge, y + edge);
 };
-Catan.Draw

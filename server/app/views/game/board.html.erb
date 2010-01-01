@@ -11,39 +11,30 @@
 <script type="text/javascript">
   $(document).ready(function() {
     Catan.Draw.loop = function() {
-    <% map_top = 50 -%>
+    <% 
+      vertical_padding = 50 
+      hex_size = 40
+      canvas_width = hex_size*4*(@board.hex_store.rows.max { |a,b| a.length <=> b.length }.length) - hex_size
+      x_offset = hex_size * 3 / 2
+      canvas_height = (vertical_padding * 2) + (hex_size * 1.732).floor*((@board.hex_store.rows.length + 1) / 2)
+    -%>
     <% @board.hex_store.rows.each_with_index do |row, row_index| 
          row.each_with_index do |hex, offset| 
-          x = 400 - (60 * row.length) + (60 * offset * 2)
-          y = map_top + 34 * row_index
+          x = (canvas_width / 2) - (x_offset * row.length) + (x_offset * offset * 2) + hex_size / 2
+          y = vertical_padding + (hex_size * 0.866).floor * row_index
     -%>
-      Catan.Draw.draw_hex(<%= x %>, <%= y %>, 40, "rgb(200,0,0)");
+      Catan.Draw.draw_hex(<%= x %>, <%= y %>, <%= hex_size %>, 
+                          "rgb(<%= Catan::HEX_TYPES[hex.type][:color].join(',') %>)",
+                          <%= hex.number %>, "<%= hex.type %>");
     <%   end
        end 
     -%>
-/*
-      Catan.Draw.draw_hex(340,  50, 40, "rgb(200,0,0)");
-      Catan.Draw.draw_hex(280,  84, 40, "rgb(0,0,200)");
-      Catan.Draw.draw_hex(400,  84, 40, "rgb(0,200,0)");
-      Catan.Draw.draw_hex(340, 118, 40, "rgb(200,200,0)");
-      Catan.Draw.draw_hex(280, 152, 40, "rgb(200,0,0)");
-      Catan.Draw.draw_hex(400, 152, 40, "rgb(0,0,200)");
-      Catan.Draw.draw_hex(340, 186, 40, "rgb(0,200,0)");
-
-      Catan.Draw.draw_hex(220, 118, 40, "rgb(0,200,0)");
-      Catan.Draw.draw_hex(220, 186, 40, "rgb(0,0,200)");
-      Catan.Draw.draw_hex(280, 220, 40, "rgb(200,200,0)");
-      Catan.Draw.draw_hex(340, 254, 40, "rgb(0,0,200)");
-      Catan.Draw.draw_hex(400, 220, 40, "rgb(200,0,0)");
-      Catan.Draw.draw_hex(460, 118, 40, "rgb(200,0,0)");
-      Catan.Draw.draw_hex(460, 186, 40, "rgb(200,200,0)");
-*/
     };
     Catan.Draw.init();
   });
 </script>
 </head>
 <body>
-<canvas id="board" width="800" height="400"></canvas>
+<canvas id="board" width="<%= canvas_width %>" height="<%= canvas_height %>"></canvas>
 </body>
 </html>

@@ -38,12 +38,7 @@ class Deck
     end
 
     # Shuffle
-    @contents.size.times do |src|
-      dest = rand(@contents.size).round
-      t = @contents[src]
-      @contents[src] = @contents[dest]
-      @contents[dest] = t
-    end
+    @contents.randomize!
   end
 
   def draw
