@@ -28,7 +28,7 @@ Catan.Draw.init_events = function() {
     Catan.Util.xy_to_hex(event.clientX-offset.left, event.clientY-offset.top);
   });
 };
-Catan.Draw.draw_hex = function(x, y, edge, color, number, type) {
+Catan.Draw.draw_hex = function(x, y, edge, color, number, type, row, col) {
   this.context.fillStyle = color;
   this.context.beginPath();
   var vertices = [[x + (edge / 2)    , y                 ],
@@ -47,7 +47,7 @@ Catan.Draw.draw_hex = function(x, y, edge, color, number, type) {
   this.context.fillStyle = "black";
   this.context.fillText(type, x + edge, y + edge);
 
-  this.hex_store[this.hex_store.length] = [x + edge, y + edge, type];
+  this.hex_store[this.hex_store.length] = [x + edge, y + edge, type, row, col];
 };
 Catan.Draw.draw_triangles = function() {
   this.context.fillStyle = "black";
@@ -93,7 +93,6 @@ Catan.Draw.draw_line = function(from_x, from_y, to_x, to_y) {
 Catan.Util = function() {};
 Catan.Util.xy_to_hex = function(x, y) {
   var distance = Catan.Draw.hex_size;
-console.log(x, y);
   var result = null;
   for (i = 0; i < Catan.Draw.hex_store.length; i++) {
     var hex = Catan.Draw.hex_store[i];
@@ -103,9 +102,11 @@ console.log(x, y);
       result = hex;
     }
   }
+  
+  console.log(result[1]);
   result = {
-    row: result[1],
-    col: result[0],
+    row: result[3],
+    col: result[4],
     type: result[2]
   };
   console.log(result);

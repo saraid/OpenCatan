@@ -25,7 +25,8 @@
     -%>
       Catan.Draw.draw_hex(<%= x %>, <%= y %>, <%= hex_size %>,
                           "rgb(<%= Catan::HEX_TYPES[hex.type][:color].join(',') %>)",
-                          <%= hex.number %>, "<%= hex.type %>");
+                          <%= hex.number %>, "<%= hex.type %>",
+                          <%= hex.row %>, <%= hex.offset %>);
     <%   end
        end 
     -%>
