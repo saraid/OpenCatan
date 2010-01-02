@@ -15,6 +15,13 @@ Catan.State.add_hex = function(x, y, edge, color, number, type, row, col) {
     x: x, y: y, edge: edge, color: color
   };
 }
+Catan.State.foreach = function(proc) {
+  for (row in this.board) {
+    for (col in this.board[row]) {
+      proc.call(this, this.board[row][col]);
+    }
+  }
+}
 Catan.State.draw = function() {
   for (row in this.board) {
     for (col in this.board[row]) {
@@ -30,6 +37,7 @@ Catan.Hex.prototype = {
     this.col = col;
     this.number = number;
     this.type = type;
+    this.state_changed = true;
   },
   toggle: function() {
     if (this.selected) operator = -1;
@@ -38,13 +46,31 @@ Catan.Hex.prototype = {
     for (i = 0; i < rgb.length; i++) rgb[i] = parseInt(rgb[i])+50*operator;
     this.draw_attributes.color = rgb;
     this.selected = !this.selected;
+    this.state_changed = true;
+  },
+  highlight: function(set_on) {
+    if (set_on) {
+      if (this.highlighted) return null;
+      else Catan.State.foreach(function(hex) { hex.highlight(false); });
+      operator = 1;
+    } else {
+      if (!this.highlighted) return null;
+      operator = -1;
+    }
+    var rgb = this.draw_attributes.color;
+    for (i = 0; i < rgb.length; i++) rgb[i] = parseInt(rgb[i])+50*operator;
+    this.draw_attributes.color = rgb;
+    this.highlighted = set_on;
+    this.state_changed = true;
   },
   draw: function(x, y, edge, color) {
+    if (!this.state_changed) return false;
     Catan.Draw.draw_hex(x || this.draw_attributes.x,
                         y || this.draw_attributes.y,
                         edge || this.draw_attributes.edge,
                         color || this.draw_attributes.color,
                         this.number, this.type, this.row, this.col);
+    this.state_changed = false;
   }
 };
 
@@ -62,19 +88,28 @@ Catan.Draw.init = function(hex_size, origin) {
   //this.draw_triangles(); // Debugging crap.
   //this.draw_warwick(); // Debugging crap.
 };
+Catan.Draw.outside_bounds = function(x, y) {
+  var offset = $("#board").offset();
+  offset.top  += parseInt($("#board").css("borderTopWidth"));
+  offset.left += parseInt($("#board").css("borderLeftWidth"));
+  if (x > $("#board").width()  + offset.left)   return true;
+  if (y > $("#board").height() + offset.top)    return true;
+  if (x < offset.left + Catan.Draw.origin.left) return true;
+  if (y < offset.top  + Catan.Draw.origin.top)  return true;
+  return false;
+};
 Catan.Draw.init_events = function() {
   var offset = $("#board").offset();
   offset.top  += parseInt($("#board").css("borderTopWidth"));
   offset.left += parseInt($("#board").css("borderLeftWidth"));
   $("#board").click(function(event) {
-    if (event.clientX > $("#board").width()  + offset.left)   return null;
-    if (event.clientY > $("#board").height() + offset.top)    return null;
-    if (event.clientX < offset.left + Catan.Draw.origin.left) return null;
-    if (event.clientY < offset.top  + Catan.Draw.origin.top)  return null;
-//    Catan.Util.xy_to_HEX(event.clientX-offset.left-Catan.Draw.origin.left,
-//                         event.clientY-offset.top-Catan.Draw.origin.top);
-    var on_hex = Catan.Util.xy_to_hex(event.clientX-offset.left, event.clientY-offset.top);
-    on_hex.toggle();
+    if (Catan.Draw.outside_bounds(event.pageX, event.pageY)) return null;
+    var on_hex = Catan.Util.xy_to_hex(event.pageX-offset.left, event.pageY-offset.top);
+    if (on_hex) on_hex.toggle();
+  }).mousemove(function(event) {
+    if (Catan.Draw.outside_bounds(event.pageX, event.pageY)) return null;
+    var on_hex = Catan.Util.xy_to_hex(event.pageX-offset.left, event.pageY-offset.top);
+    if (on_hex) on_hex.highlight(true);
   });
 };
 Catan.Draw.draw_hex = function(x, y, edge, color, number, type, row, col) {
