@@ -94,10 +94,6 @@ Catan.Intersection.prototype = {
     if (!this.invisible) return null;
     this.invisible = false;
     this.state_changed = true;
-    var _this = this;
-    setTimeout(function() {
-      _this.hide();
-    }, 1000);
   },
   hide: function() {
     if (this.invisible) return null;
@@ -146,6 +142,7 @@ Catan.Draw.init_events = function() {
     if (on_hex) on_hex.toggle();
   }).mousemove(function(event) {
     if (Catan.Draw.outside_bounds(event.pageX, event.pageY)) null;
+    Catan.Draw.nuke_intersections();
     var on_hex = Catan.Util.xy_to_hex(event.pageX-Catan.Draw.offset.left, event.pageY-Catan.Draw.offset.top);
     if (on_hex) on_hex.highlight(true);
     var on_inter = Catan.Util.xy_to_intersection(event.pageX-Catan.Draw.offset.left, event.pageY-Catan.Draw.offset.top);
@@ -180,6 +177,12 @@ Catan.Draw.draw_intersection = function(x, y, visible) {
   if (!visible) size+=2;
   this.context.arc(x, y, size, 0, Math.PI*2, true);
   this.context.fill();
+};
+Catan.Draw.nuke_intersections = function() {
+  for (i in Catan.State.intersections) {
+    var inter = Catan.State.intersections[i];
+    if (!inter.invisible) inter.hide();
+  }
 };
 
 Catan.Util = function() {};
