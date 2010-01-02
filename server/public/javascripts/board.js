@@ -20,7 +20,6 @@ Catan.State.add_intersection = function(id, x, y) {
   this.init();
   this.intersections[id] = new Catan.Intersection();
   this.intersections[id].draw_attributes = { x: x, y: y };
-  this.intersections[id].state_changed = true;
 }
 Catan.State.foreach_hex = function(proc) {
   for (row in this.board) {
@@ -56,7 +55,6 @@ Catan.Hex.prototype = {
     this.state_changed = true;
   },
   highlight: function(set_on) {
-return false;
     if (set_on) {
       if (this.highlighted) return null;
       else Catan.State.foreach_hex(function(hex) { hex.highlight(false); });
@@ -81,14 +79,22 @@ return false;
   }
 };
 
-Catan.Intersection = function() { this.init.apply(arguments); }
+Catan.Intersection = function() { this.init.apply(this, arguments); }
 Catan.Intersection.prototype = {
   init: function(foo) {
     this.invisible = true;
     this.state_changed = true;
   },
+  show: function() {
+    this.invisible = false;
+    this.state_changed = true;
+    setTimeout(this.hide, 1000);
+  },
+  hide: function() {
+    this.invisible = true;
+  },
   draw: function() {
-    //if (this.invisible) return false;
+    if (this.invisible) return false;
     if (!this.state_changed) return false;
     Catan.Draw.draw_intersection(this.draw_attributes.x,
                                  this.draw_attributes.y);
@@ -124,9 +130,11 @@ Catan.Draw.init_events = function() {
     var on_hex = Catan.Util.xy_to_hex(event.pageX-Catan.Draw.offset.left, event.pageY-Catan.Draw.offset.top);
     if (on_hex) on_hex.toggle();
   }).mousemove(function(event) {
-    if (Catan.Draw.outside_bounds(event.pageX, event.pageY)) return null;
+    if (Catan.Draw.outside_bounds(event.pageX, event.pageY)) null;
     var on_hex = Catan.Util.xy_to_hex(event.pageX-Catan.Draw.offset.left, event.pageY-Catan.Draw.offset.top);
     if (on_hex) on_hex.highlight(true);
+    var on_inter = Catan.Util.xy_to_intersection(event.pageX-Catan.Draw.offset.left, event.pageY-Catan.Draw.offset.top);
+    if (on_inter) on_inter.show();
   });
 };
 Catan.Draw.draw_hex = function(x, y, color, number, type, row, col) {
@@ -172,4 +180,18 @@ Catan.Util.xy_to_hex = function(x, y) {
   
   if (result) return Catan.State.board[result[3]][result[4]];
   return null;
+}
+Catan.Util.xy_to_intersection = function(x, y) {
+  var distance = Catan.Draw.hex_size / 8;
+  var result = null;
+  for (i in Catan.State.intersections) {
+    var inter = Catan.State.intersections[i];
+    this_distance = Math.sqrt(Math.pow(x - inter.draw_attributes.x, 2) + Math.pow(y - inter.draw_attributes.y, 2));
+    if (this_distance < distance) {
+      distance = this_distance
+      result = inter;
+    }
+  }
+  
+  return result;
 }
