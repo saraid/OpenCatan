@@ -26,13 +26,42 @@
           x = (canvas_width / 2) - (x_offset * row.length) + (x_offset * offset * 2) + hex_size / 2
           y = vertical_padding + (hex_size * 0.866).floor * row_index
     -%>
-    Catan.State.add_hex(<%= x %>, <%= y %>, <%= hex_size %>,
-                        [<%= Catan::HEX_TYPES[hex.type][:color].join(',') %>],
+    Catan.State.add_hex(<%= x %>, <%= y %>, [<%= Catan::HEX_TYPES[hex.type][:color].join(',') %>],
                         <%= hex.number %>, "<%= hex.type %>",
                         <%= hex.row %>, <%= hex.offset %>);
     <%   end
        end 
     -%>
+    <% 
+        offset = 0
+        rows = @board.intersection_array
+        row = 0
+        rows.collect! { |length| Array.new(length/2, 0) }
+        rows.each_with_index do |rowN, row_index|
+          push = row_index % 2 == 0 ? 1 : 2
+          step = 0
+          rowN.reverse.each_with_index do |num, index|
+            rowN[rowN.length-index-1] = push
+            step = index % 2 == 0 ? 2 : 4 if row_index % 2 == 1
+            step = index % 2 == 1 ? 2 : 4 if row_index % 2 == 0
+            push += step
+          end
+          rows[row_index] = rowN + rowN.reverse
+        end
+        @board.intersections.each do |intersection|
+          y = vertical_padding + (hex_size * 0.866).floor*intersection.row
+          x = (canvas_width / 2)
+
+          op = offset < rows[row].length/2 ? :'-' : :'+'
+          x = x.send(op, hex_size * rows[row][offset] / 2)
+    -%>
+    Catan.State.add_intersection(<%= intersection.identifier %>, <%= x %>, <%= y %>);
+    <%    offset += 1
+          if offset == rows[row].length
+            row += 1
+            offset = 0
+          end
+        end -%>
     Catan.Draw.loop = function() {
       Catan.State.draw();
     };
@@ -42,9 +71,5 @@
 </head>
 <body>
 <canvas id="board" width="<%= canvas_width %>" height="<%= canvas_height %>"></canvas>
-<div id="buttons">
-  <button onclick="Catan.Draw.draw_triangles()">Draw Triangles</button>
-  <button onclick="Catan.Draw.draw_warwick()">Draw Warwick</button>
-</div>
 </body>
 </html>

@@ -5,17 +5,24 @@ Catan.State.init = function() {
   if (this.initialized) return false;
   this.initialized = true;
   this.board = [];
+  this.intersections = [];
 };
 
-Catan.State.add_hex = function(x, y, edge, color, number, type, row, col) {
+Catan.State.add_hex = function(x, y, color, number, type, row, col) {
   this.init();
   if (!this.board[row]) this.board[row] = [];
   this.board[row][col] = new Catan.Hex(row, col, number, type);
   this.board[row][col].draw_attributes = {
-    x: x, y: y, edge: edge, color: color
+    x: x, y: y, color: color
   };
 }
-Catan.State.foreach = function(proc) {
+Catan.State.add_intersection = function(id, x, y) {
+  this.init();
+  this.intersections[id] = new Catan.Intersection();
+  this.intersections[id].draw_attributes = { x: x, y: y };
+  this.intersections[id].state_changed = true;
+}
+Catan.State.foreach_hex = function(proc) {
   for (row in this.board) {
     for (col in this.board[row]) {
       proc.call(this, this.board[row][col]);
@@ -23,7 +30,8 @@ Catan.State.foreach = function(proc) {
   }
 }
 Catan.State.draw = function() {
-  this.foreach(function(hex) { hex.draw(); });
+  this.foreach_hex(function(hex) { hex.draw(); });
+  for (i in this.intersections) this.intersections[i].draw();
 }
 
 Catan.Hex = function() { this.init.apply(this, arguments); };
@@ -33,6 +41,9 @@ Catan.Hex.prototype = {
     this.col = col;
     this.number = number;
     this.type = type;
+    this.state_changed = true;
+  },
+  need_redraw: function() {
     this.state_changed = true;
   },
   toggle: function() {
@@ -45,9 +56,10 @@ Catan.Hex.prototype = {
     this.state_changed = true;
   },
   highlight: function(set_on) {
+return false;
     if (set_on) {
       if (this.highlighted) return null;
-      else Catan.State.foreach(function(hex) { hex.highlight(false); });
+      else Catan.State.foreach_hex(function(hex) { hex.highlight(false); });
       operator = 1;
     } else {
       if (!this.highlighted) return null;
@@ -59,13 +71,27 @@ Catan.Hex.prototype = {
     this.highlighted = set_on;
     this.state_changed = true;
   },
-  draw: function(x, y, edge, color) {
+  draw: function() {
     if (!this.state_changed) return false;
-    Catan.Draw.draw_hex(x || this.draw_attributes.x,
-                        y || this.draw_attributes.y,
-                        edge || this.draw_attributes.edge,
-                        color || this.draw_attributes.color,
+    Catan.Draw.draw_hex(this.draw_attributes.x,
+                        this.draw_attributes.y,
+                        this.draw_attributes.color,
                         this.number, this.type, this.row, this.col);
+    this.state_changed = false;
+  }
+};
+
+Catan.Intersection = function() { this.init.apply(arguments); }
+Catan.Intersection.prototype = {
+  init: function(foo) {
+    this.invisible = true;
+    this.state_changed = true;
+  },
+  draw: function() {
+    //if (this.invisible) return false;
+    if (!this.state_changed) return false;
+    Catan.Draw.draw_intersection(this.draw_attributes.x,
+                                 this.draw_attributes.y);
     this.state_changed = false;
   }
 };
@@ -103,15 +129,15 @@ Catan.Draw.init_events = function() {
     if (on_hex) on_hex.highlight(true);
   });
 };
-Catan.Draw.draw_hex = function(x, y, edge, color, number, type, row, col) {
+Catan.Draw.draw_hex = function(x, y, color, number, type, row, col) {
   this.context.fillStyle = "rgb(" + color.join(',') + ")";
   this.context.beginPath();
-  var vertices = [[x + (edge / 2)    , y                 ],
-                  [x + (3 * edge / 2), y                 ],
-                  [x + (2 * edge)    , y + (edge * 0.866)],
-                  [x + (3 * edge / 2), y + (edge * 1.732)],
-                  [x + (edge / 2)    , y + (edge * 1.732)],
-                  [x                 , y + (edge * 0.866)]]
+  var vertices = [[x + (this.hex_size / 2)    , y                          ],
+                  [x + (3 * this.hex_size / 2), y                          ],
+                  [x + (2 * this.hex_size)    , y + (this.hex_size * 0.866)],
+                  [x + (3 * this.hex_size / 2), y + (this.hex_size * 1.732)],
+                  [x + (this.hex_size / 2)    , y + (this.hex_size * 1.732)],
+                  [x                          , y + (this.hex_size * 0.866)]]
   this.context.moveTo(vertices[0][0], vertices[0][1]);
   for (i = 0; i < 6; i++)
     this.context.lineTo(vertices[i][0], vertices[i][1]);
@@ -120,9 +146,15 @@ Catan.Draw.draw_hex = function(x, y, edge, color, number, type, row, col) {
   this.context.textAlign = "center";
   this.context.font = "12px Times";
   this.context.fillStyle = "black";
-  this.context.fillText(type, x + edge, y + edge);
+  this.context.fillText(type, x + this.hex_size, y + this.hex_size);
 
-  this.hex_store[this.hex_store.length] = [x + edge, y + edge, type, row, col];
+  this.hex_store[this.hex_store.length] = [x + this.hex_size, y + this.hex_size, type, row, col];
+};
+Catan.Draw.draw_intersection = function(x, y) {
+  this.context.fillStyle = "black";
+  this.context.beginPath();
+  this.context.arc(x, y, this.hex_size / 8, 0, Math.PI*2, true);
+  this.context.fill();
 };
 
 Catan.Util = function() {};

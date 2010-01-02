@@ -66,6 +66,7 @@ class Board
       @hexes = []
     end
     attr_reader :identifier, :paths
+    attr_reader :row, :col
 
     def <=>(other)
       @identifier <=> other.identifier
@@ -74,6 +75,11 @@ class Board
     def connect_with_hex(hex)
       raise "Attempted to add too many hexes!" if @hexes.length >= 3
       @hexes << hex
+    end
+    def set_xy(row, col)
+      @row = row
+      @col = col
+      self
     end
 
     def add_path(path)
@@ -125,10 +131,11 @@ class Board
     @hex_store = HexStore.new
     map_size = map_size.to_i
     map_size = 2 if map_size < 2
+    @size = map_size
 
-    hex_shaped_map(map_size)
+    hex_shaped_map(@size)
   end
-  attr_reader :hex_store
+  attr_reader :hex_store, :size, :intersections, :intersection_array
 
   def hex_shaped_map(size)
 
@@ -188,6 +195,7 @@ class Board
     tmp = intersection_array.reverse.clone
     (2*size-3).times do intersection_array << intersection_array[-1] end
     intersection_array = intersection_array + tmp
+    @intersection_array = intersection_array
     
     # Pattern A - X0XX0XX0...
     # Pattern B - XX0XX0XX...
@@ -195,43 +203,43 @@ class Board
     intersection_array.each_with_index do |intersection_count, row_index|
       if row_index < size
         intersection_count.times do |offset|
-          @hex_store.fetch(row_index, offset / 2).fill_intersection @intersections[intersection_index]
+          @hex_store.fetch(row_index, offset / 2).fill_intersection @intersections[intersection_index].set_xy(row_index, offset)
           if offset > 0 && offset < intersection_count-1
-            @hex_store.fetch(row_index - 1, (offset - 1) / 2).fill_intersection @intersections[intersection_index] 
+            @hex_store.fetch(row_index - 1, (offset - 1) / 2).fill_intersection @intersections[intersection_index].set_xy(row_index, offset) 
           end
           if offset > 1 && offset < intersection_count-2
-            @hex_store.fetch(row_index - 2, (offset - 2) / 2).fill_intersection @intersections[intersection_index] 
+            @hex_store.fetch(row_index - 2, (offset - 2) / 2).fill_intersection @intersections[intersection_index].set_xy(row_index, offset)
           end
           intersection_index += 1
         end
       elsif row_index >= size && row_index < intersection_array.length-size
         if (size + row_index) % 2 == 0 # Pattern A
           intersection_count.times do |offset|
-            @hex_store.fetch(row_index - 1, offset / 2).fill_intersection @intersections[intersection_index]
+            @hex_store.fetch(row_index - 1, offset / 2).fill_intersection @intersections[intersection_index].set_xy(row_index, offset)
             if offset > 0 && offset < intersection_count-1
-              @hex_store.fetch(row_index, (offset - 1) / 2).fill_intersection @intersections[intersection_index]
-              @hex_store.fetch(row_index - 2, (offset - 1) / 2).fill_intersection @intersections[intersection_index] 
+              @hex_store.fetch(row_index, (offset - 1) / 2).fill_intersection @intersections[intersection_index].set_xy(row_index, offset)
+              @hex_store.fetch(row_index - 2, (offset - 1) / 2).fill_intersection @intersections[intersection_index].set_xy(row_index, offset)
             end
             intersection_index += 1
           end
         else                           # Pattern B
           intersection_count.times do |offset|
-            @hex_store.fetch(row_index - 2, offset / 2).fill_intersection @intersections[intersection_index]
+            @hex_store.fetch(row_index - 2, offset / 2).fill_intersection @intersections[intersection_index].set_xy(row_index, offset)
             if offset > 0 && offset < intersection_count-1
-              @hex_store.fetch(row_index - 1, (offset - 1) / 2).fill_intersection @intersections[intersection_index]
+              @hex_store.fetch(row_index - 1, (offset - 1) / 2).fill_intersection @intersections[intersection_index].set_xy(row_index, offset)
             end
-            @hex_store.fetch(row_index, offset / 2).fill_intersection @intersections[intersection_index]
+            @hex_store.fetch(row_index, offset / 2).fill_intersection @intersections[intersection_index].set_xy(row_index, offset)
             intersection_index += 1
           end
         end
       else 
         intersection_count.times do |offset|
-          @hex_store.fetch(row_index - 2, offset / 2).fill_intersection @intersections[intersection_index] 
+          @hex_store.fetch(row_index - 2, offset / 2).fill_intersection @intersections[intersection_index].set_xy(row_index, offset)
           if offset > 0 && offset < intersection_count-1
-            @hex_store.fetch(row_index - 1, (offset - 1) / 2).fill_intersection @intersections[intersection_index] 
+            @hex_store.fetch(row_index - 1, (offset - 1) / 2).fill_intersection @intersections[intersection_index].set_xy(row_index, offset)
           end
           if offset > 1 && offset < intersection_count-2
-            @hex_store.fetch(row_index, (offset - 2) / 2).fill_intersection @intersections[intersection_index] 
+            @hex_store.fetch(row_index, (offset - 2) / 2).fill_intersection @intersections[intersection_index].set_xy(row_index, offset)
           end
           intersection_index += 1
         end
