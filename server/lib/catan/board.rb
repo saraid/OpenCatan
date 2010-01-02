@@ -65,7 +65,7 @@ class Board
       @paths = []
       @hexes = []
     end
-    attr_reader :identifier, :paths
+    attr_reader :identifier, :paths, :hexes
     attr_reader :row, :col
 
     def <=>(other)

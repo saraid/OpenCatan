@@ -16,9 +16,9 @@ Catan.State.add_hex = function(x, y, color, number, type, row, col) {
     x: x, y: y, color: color
   };
 }
-Catan.State.add_intersection = function(id, x, y) {
+Catan.State.add_intersection = function(id, x, y, hexes) {
   this.init();
-  this.intersections[id] = new Catan.Intersection();
+  this.intersections[id] = new Catan.Intersection(id, hexes);
   this.intersections[id].draw_attributes = { x: x, y: y };
 }
 Catan.State.foreach_hex = function(proc) {
@@ -42,7 +42,7 @@ Catan.Hex.prototype = {
     this.type = type;
     this.state_changed = true;
   },
-  need_redraw: function() {
+  needs_redraw: function() {
     this.state_changed = true;
   },
   toggle: function() {
@@ -81,23 +81,38 @@ Catan.Hex.prototype = {
 
 Catan.Intersection = function() { this.init.apply(this, arguments); }
 Catan.Intersection.prototype = {
-  init: function(foo) {
+  init: function(id, hexes) {
+    this.id = id;
+    this.hexes = [];
+    for (i = 0; i < hexes.length; i++) {
+      this.hexes[i] = Catan.State.board[hexes[i][0]][hexes[i][1]];
+    }
     this.invisible = true;
     this.state_changed = true;
   },
   show: function() {
+    if (!this.invisible) return null;
     this.invisible = false;
     this.state_changed = true;
-    setTimeout(this.hide, 1000);
+    var _this = this;
+    setTimeout(function() {
+      _this.hide();
+    }, 1000);
   },
   hide: function() {
+    if (this.invisible) return null;
     this.invisible = true;
+    this.state_changed = true;
   },
   draw: function() {
-    if (this.invisible) return false;
     if (!this.state_changed) return false;
     Catan.Draw.draw_intersection(this.draw_attributes.x,
-                                 this.draw_attributes.y);
+                                 this.draw_attributes.y,
+                                 !this.invisible);
+    if (this.invisible)
+      for (i = 0; i < this.hexes.length; i++) {
+        this.hexes[i].needs_redraw();
+      }
     this.state_changed = false;
   }
 };
@@ -158,10 +173,12 @@ Catan.Draw.draw_hex = function(x, y, color, number, type, row, col) {
 
   this.hex_store[this.hex_store.length] = [x + this.hex_size, y + this.hex_size, type, row, col];
 };
-Catan.Draw.draw_intersection = function(x, y) {
-  this.context.fillStyle = "black";
+Catan.Draw.draw_intersection = function(x, y, visible) {
+  this.context.fillStyle = visible ? "black" : "white";
   this.context.beginPath();
-  this.context.arc(x, y, this.hex_size / 8, 0, Math.PI*2, true);
+  var size = this.hex_size / 8;
+  if (!visible) size+=2;
+  this.context.arc(x, y, size, 0, Math.PI*2, true);
   this.context.fill();
 };
 

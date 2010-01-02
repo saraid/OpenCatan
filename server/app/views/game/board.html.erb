@@ -55,7 +55,8 @@
           op = offset < rows[row].length/2 ? :'-' : :'+'
           x = x.send(op, hex_size * rows[row][offset] / 2)
     -%>
-    Catan.State.add_intersection(<%= intersection.identifier %>, <%= x %>, <%= y %>);
+    Catan.State.add_intersection(<%= intersection.identifier %>, <%= x %>, <%= y %>,
+                                 [<%= intersection.hexes.collect { |hex| "[#{hex.row},#{hex.offset}]" }.join(',') %>]);
     <%    offset += 1
           if offset == rows[row].length
             row += 1
