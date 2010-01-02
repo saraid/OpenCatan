@@ -82,30 +82,28 @@ Catan.Draw.init = function(hex_size, origin) {
   this.hex_size = hex_size;
   this.origin = origin;
   this.hex_store = [];
+  this.offset = $("#board").offset();
+    this.offset.top  += parseInt($("#board").css("borderTopWidth"));
+    this.offset.left += parseInt($("#board").css("borderLeftWidth"));
+
   setInterval(this.loop, 10);
   this.init_events();
 };
 Catan.Draw.outside_bounds = function(x, y) {
-  var offset = $("#board").offset();
-  offset.top  += parseInt($("#board").css("borderTopWidth"));
-  offset.left += parseInt($("#board").css("borderLeftWidth"));
-  if (x > $("#board").width()  + offset.left)   return true;
-  if (y > $("#board").height() + offset.top)    return true;
-  if (x < offset.left + Catan.Draw.origin.left) return true;
-  if (y < offset.top  + Catan.Draw.origin.top)  return true;
+  if (x > $("#board").width()  + this.offset.left)   return true;
+  if (y > $("#board").height() + this.offset.top)    return true;
+  if (x < this.offset.left + Catan.Draw.origin.left) return true;
+  if (y < this.offset.top  + Catan.Draw.origin.top)  return true;
   return false;
 };
 Catan.Draw.init_events = function() {
-  var offset = $("#board").offset();
-  offset.top  += parseInt($("#board").css("borderTopWidth"));
-  offset.left += parseInt($("#board").css("borderLeftWidth"));
   $("#board").click(function(event) {
     if (Catan.Draw.outside_bounds(event.pageX, event.pageY)) return null;
-    var on_hex = Catan.Util.xy_to_hex(event.pageX-offset.left, event.pageY-offset.top);
+    var on_hex = Catan.Util.xy_to_hex(event.pageX-Catan.Draw.offset.left, event.pageY-Catan.Draw.offset.top);
     if (on_hex) on_hex.toggle();
   }).mousemove(function(event) {
     if (Catan.Draw.outside_bounds(event.pageX, event.pageY)) return null;
-    var on_hex = Catan.Util.xy_to_hex(event.pageX-offset.left, event.pageY-offset.top);
+    var on_hex = Catan.Util.xy_to_hex(event.pageX-Catan.Draw.offset.left, event.pageY-Catan.Draw.offset.top);
     if (on_hex) on_hex.highlight(true);
   });
 };
