@@ -23,11 +23,7 @@ Catan.State.foreach = function(proc) {
   }
 }
 Catan.State.draw = function() {
-  for (row in this.board) {
-    for (col in this.board[row]) {
-      this.board[row][col].draw();
-    }
-  }
+  this.foreach(function(hex) { hex.draw(); });
 }
 
 Catan.Hex = function() { this.init.apply(this, arguments); };
