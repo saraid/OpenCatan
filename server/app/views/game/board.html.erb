@@ -4,13 +4,16 @@
 <style type="text/css">
   canvas { 
     border: solid 10px black; 
+    float: left;
+  }
+  div#buttons {
+    float: left;
   }
 </style>
 <script type="text/javascript" src="/javascripts/jquery.js"></script>
 <script type="text/javascript" src="/javascripts/board.js?<%= rand(100000) %>"></script>
 <script type="text/javascript">
   $(document).ready(function() {
-    Catan.Draw.loop = function() {
     <% 
       vertical_padding = 50 
       hex_size = (params[:hex_size] || 40).to_i
@@ -23,13 +26,15 @@
           x = (canvas_width / 2) - (x_offset * row.length) + (x_offset * offset * 2) + hex_size / 2
           y = vertical_padding + (hex_size * 0.866).floor * row_index
     -%>
-      Catan.Draw.draw_hex(<%= x %>, <%= y %>, <%= hex_size %>,
-                          "rgb(<%= Catan::HEX_TYPES[hex.type][:color].join(',') %>)",
-                          <%= hex.number %>, "<%= hex.type %>",
-                          <%= hex.row %>, <%= hex.offset %>);
+    Catan.State.add_hex(<%= x %>, <%= y %>, <%= hex_size %>,
+                        [<%= Catan::HEX_TYPES[hex.type][:color].join(',') %>],
+                        <%= hex.number %>, "<%= hex.type %>",
+                        <%= hex.row %>, <%= hex.offset %>);
     <%   end
        end 
     -%>
+    Catan.Draw.loop = function() {
+      Catan.State.draw();
     };
     Catan.Draw.init(<%= hex_size %>, { top: <%= vertical_padding %>, left: <%= x_offset %> });
   });
@@ -37,5 +42,9 @@
 </head>
 <body>
 <canvas id="board" width="<%= canvas_width %>" height="<%= canvas_height %>"></canvas>
+<div id="buttons">
+  <button onclick="Catan.Draw.draw_triangles()">Draw Triangles</button>
+  <button onclick="Catan.Draw.draw_warwick()">Draw Warwick</button>
+</div>
 </body>
 </html>

@@ -1,5 +1,53 @@
 var Catan = function() {};
 
+Catan.State = function() {};
+Catan.State.init = function() {
+  if (this.initialized) return false;
+  this.initialized = true;
+  this.board = [];
+};
+
+Catan.State.add_hex = function(x, y, edge, color, number, type, row, col) {
+  this.init();
+  if (!this.board[row]) this.board[row] = [];
+  this.board[row][col] = new Catan.Hex(row, col, number, type);
+  this.board[row][col].draw_attributes = {
+    x: x, y: y, edge: edge, color: color
+  };
+}
+Catan.State.draw = function() {
+  for (row in this.board) {
+    for (col in this.board[row]) {
+      this.board[row][col].draw();
+    }
+  }
+}
+
+Catan.Hex = function() { this.init.apply(this, arguments); };
+Catan.Hex.prototype = {
+  init: function(row, col, number, type) {
+    this.row = row;
+    this.col = col;
+    this.number = number;
+    this.type = type;
+  },
+  toggle: function() {
+    if (this.selected) operator = -1;
+    else operator = 1;
+    var rgb = this.draw_attributes.color;
+    for (i = 0; i < rgb.length; i++) rgb[i] = parseInt(rgb[i])+50*operator;
+    this.draw_attributes.color = rgb;
+    this.selected = !this.selected;
+  },
+  draw: function(x, y, edge, color) {
+    Catan.Draw.draw_hex(x || this.draw_attributes.x,
+                        y || this.draw_attributes.y,
+                        edge || this.draw_attributes.edge,
+                        color || this.draw_attributes.color,
+                        this.number, this.type, this.row, this.col);
+  }
+};
+
 Catan.Draw = function() {};
 
 Catan.Draw.init = function(hex_size, origin) {
@@ -7,9 +55,9 @@ Catan.Draw.init = function(hex_size, origin) {
   this.context = this.board.getContext('2d');
   this.hex_size = hex_size;
   this.origin = origin;
-  //setInterval(this.loop, 10);
   this.hex_store = [];
-  this.loop();
+  setInterval(this.loop, 10);
+  //this.loop();
   this.init_events();
   //this.draw_triangles(); // Debugging crap.
   //this.draw_warwick(); // Debugging crap.
@@ -25,11 +73,12 @@ Catan.Draw.init_events = function() {
     if (event.clientY < offset.top  + Catan.Draw.origin.top)  return null;
 //    Catan.Util.xy_to_HEX(event.clientX-offset.left-Catan.Draw.origin.left,
 //                         event.clientY-offset.top-Catan.Draw.origin.top);
-    Catan.Util.xy_to_hex(event.clientX-offset.left, event.clientY-offset.top);
+    var on_hex = Catan.Util.xy_to_hex(event.clientX-offset.left, event.clientY-offset.top);
+    on_hex.toggle();
   });
 };
 Catan.Draw.draw_hex = function(x, y, edge, color, number, type, row, col) {
-  this.context.fillStyle = color;
+  this.context.fillStyle = "rgb(" + color.join(',') + ")";
   this.context.beginPath();
   var vertices = [[x + (edge / 2)    , y                 ],
                   [x + (3 * edge / 2), y                 ],
@@ -103,14 +152,8 @@ Catan.Util.xy_to_hex = function(x, y) {
     }
   }
   
-  console.log(result[1]);
-  result = {
-    row: result[3],
-    col: result[4],
-    type: result[2]
-  };
-  console.log(result);
-  return result;
+  if (result) return Catan.State.board[result[3]][result[4]];
+  return null;
 }
 //{
 //  var s=Catan.Draw.hex_size;
