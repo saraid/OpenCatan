@@ -92,7 +92,7 @@ class Board
   class Path
     @@paths = [] # For debugging
     def self.dump_paths 
-      puts "from |  to |"
+
       Board::Path.paths.each do |path|
         foo = path.instance_variable_get :@intersections
         foo.each do |intersection|
@@ -117,7 +117,7 @@ class Board
     end
 
     def ==(other)
-      @intersections.all? { |i| other.instance_variable_get(:@intersections).include? i }
+      @intersections.all? { |i| other.intersections.include? i }
     end
   end
 
@@ -135,7 +135,7 @@ class Board
 
     hex_shaped_map(@size)
   end
-  attr_reader :hex_store, :size, :intersections, :intersection_array
+  attr_reader :hex_store, :size, :intersections, :intersection_array, :paths
 
   def hex_shaped_map(size)
 
@@ -259,6 +259,12 @@ class Board
       Path.new(intersections[4], intersections[2])
       Path.new(intersections[2], intersections[0])
     end
+
+    @paths = []
+    @intersections.each do |intersection|
+      @paths = @paths + intersection.paths
+    end
+    @paths.uniq!
 
   end
   private :hex_shaped_map

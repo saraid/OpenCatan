@@ -63,6 +63,11 @@
             offset = 0
           end
         end -%>
+    <% @board.paths.each do |path|
+    -%>
+    Catan.State.add_path([<%= path.intersections.collect { |i| i.identifier }.join(',') %>]);
+    <% end
+    -%>
     Catan.Draw.loop = function() {
       Catan.State.draw();
     };
