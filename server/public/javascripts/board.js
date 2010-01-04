@@ -134,11 +134,29 @@ Catan.Path.prototype = {
     else
       this.draw_attributes.angle = Math.PI*-1/3;
 
+    this.invisible = true;
+    this.state_changed = true;
+  },
+  show: function() {
+    if (!this.invisible) return null;
+    this.invisible = false;
+    this.state_changed = true;
+  },
+  hide: function() {
+    if (this.invisible) return null;
+    this.invisible = true;
     this.state_changed = true;
   },
   draw: function() {
     if (!this.state_changed) return false;
-    Catan.Draw.draw_path(this.draw_attributes);
+    Catan.Draw.draw_path(this.draw_attributes, !this.invisible);
+    if (this.invisible) {
+      for (i = 0; i < this.intersections.length; i++) {
+        for (j = 0; j < this.intersections[i].hexes.length; j++) {
+          this.intersections[i].hexes[j].needs_redraw();
+        }
+      }
+    }
     this.state_changed = false;
   }
 };
@@ -172,11 +190,13 @@ Catan.Draw.init_events = function() {
     if (on_hex) on_hex.toggle();
   }).mousemove(function(event) {
     if (Catan.Draw.outside_bounds(event.pageX, event.pageY)) null;
-    Catan.Draw.nuke_intersections();
+    Catan.Draw.nuke_intersections_and_paths();
     var on_hex = Catan.Util.xy_to_hex(event.pageX-Catan.Draw.offset.left, event.pageY-Catan.Draw.offset.top);
     if (on_hex) on_hex.highlight(true);
     var on_inter = Catan.Util.xy_to_intersection(event.pageX-Catan.Draw.offset.left, event.pageY-Catan.Draw.offset.top);
     if (on_inter) on_inter.show();
+    var on_path = Catan.Util.xy_to_path(event.pageX-Catan.Draw.offset.left, event.pageY-Catan.Draw.offset.top);
+    if (on_path) on_path.show();
   });
 };
 Catan.Draw.draw_hex = function(x, y, color, number, type, row, col) {
@@ -208,16 +228,14 @@ Catan.Draw.draw_intersection = function(x, y, visible) {
   this.context.arc(x, y, size, 0, Math.PI*2, true);
   this.context.fill();
 };
-Catan.Draw.nuke_intersections = function() {
-  for (i in Catan.State.intersections) {
-    var inter = Catan.State.intersections[i];
-    if (!inter.invisible) inter.hide();
-  }
-};
-Catan.Draw.draw_path = function(attributes) {
-  this.context.fillStyle = "black";
+Catan.Draw.draw_path = function(attributes, visible) {
+  this.context.fillStyle = visible ? "black" : "white";
   var path_width  = this.hex_size / 10;
   var path_length = this.hex_size * 0.75;
+  if (!visible) {
+     path_width++;
+     path_length++;
+  }
 
   this.context.save();
   this.context.translate(attributes.x, attributes.y);
@@ -229,10 +247,16 @@ Catan.Draw.draw_path = function(attributes) {
   this.context.lineTo(-path_length/2,  path_width/2);
   this.context.fill();
   this.context.restore();
-  
 };
-Catan.Draw.translate_xy_to_origin = function(x, y) {
-  this.context.translate(x, y);
+Catan.Draw.nuke_intersections_and_paths = function() {
+  for (i in Catan.State.intersections) {
+    var inter = Catan.State.intersections[i];
+    if (!inter.invisible) inter.hide();
+  }
+  for (i in Catan.State.paths) {
+    var path = Catan.State.paths[i];
+    if (!path.invisible) path.hide();
+  }
 };
 
 Catan.Util = function() {};
@@ -260,6 +284,20 @@ Catan.Util.xy_to_intersection = function(x, y) {
     if (this_distance < distance) {
       distance = this_distance
       result = inter;
+    }
+  }
+  
+  return result;
+}
+Catan.Util.xy_to_path = function(x, y) {
+  var distance = Catan.Draw.hex_size * 0.75;
+  var result = null;
+  for (i in Catan.State.paths) {
+    var path = Catan.State.paths[i];
+    this_distance = Math.sqrt(Math.pow(x - path.draw_attributes.x, 2) + Math.pow(y - path.draw_attributes.y, 2));
+    if (this_distance < distance) {
+      distance = this_distance
+      result = path;
     }
   }
   
