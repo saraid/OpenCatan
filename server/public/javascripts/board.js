@@ -318,7 +318,7 @@ Catan.Util.xy_to_intersection = function(x, y) {
   return result;
 }
 Catan.Util.xy_to_path = function(x, y) {
-  var distance = Catan.Draw.hex_size * 0.75;
+  var distance = Catan.Draw.hex_size * 0.75 / 2;
   var result = null;
   for (i in Catan.State.paths) {
     var path = Catan.State.paths[i];
