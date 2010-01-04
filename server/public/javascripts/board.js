@@ -48,6 +48,10 @@ Catan.Hex.prototype = {
     this.type = type;
     this.state_changed = true;
   },
+  add_for_redraw: function(obj) {
+    if (this.redraw == null) this.redraw = [];
+    this.redraw[this.redraw.length] = obj;
+  },
   needs_redraw: function() {
     this.state_changed = true;
   },
@@ -82,6 +86,9 @@ Catan.Hex.prototype = {
                         this.draw_attributes.color,
                         this.number, this.type, this.row, this.col);
     this.state_changed = false;
+    for (i = 0; i < this.redraw.length; i++) {
+      this.redraw[i].needs_redraw();
+    }
   }
 };
 
@@ -92,8 +99,13 @@ Catan.Intersection.prototype = {
     this.hexes = [];
     for (i = 0; i < hexes.length; i++) {
       this.hexes[i] = Catan.State.board[hexes[i][0]][hexes[i][1]];
+      this.hexes[i].add_for_redraw(this);
     }
     this.invisible = true;
+    this.state_changed = true;
+  },
+  needs_redraw: function() {
+    if (this.invisible) return false;
     this.state_changed = true;
   },
   show: function() {
@@ -134,7 +146,18 @@ Catan.Path.prototype = {
     else
       this.draw_attributes.angle = Math.PI*-1/3;
 
+    for (i = 0; i < this.intersections.length; i++) {
+      var hexes = this.intersections[i].hexes;
+      for (j = 0; j < hexes.length; j++) {
+        hexes[j].add_for_redraw(this);
+      }
+    }
+
     this.invisible = true;
+    this.state_changed = true;
+  },
+  needs_redraw: function() {
+    if (this.invisible) return false;
     this.state_changed = true;
   },
   show: function() {
@@ -143,9 +166,12 @@ Catan.Path.prototype = {
     this.state_changed = true;
   },
   hide: function() {
-    if (this.invisible) return null;
+    if (this.invisible || this.stuck) return null;
     this.invisible = true;
     this.state_changed = true;
+  },
+  stick: function() {
+    this.stuck = true;
   },
   draw: function() {
     if (!this.state_changed) return false;
@@ -188,6 +214,8 @@ Catan.Draw.init_events = function() {
     if (Catan.Draw.outside_bounds(event.pageX, event.pageY)) return null;
     var on_hex = Catan.Util.xy_to_hex(event.pageX-Catan.Draw.offset.left, event.pageY-Catan.Draw.offset.top);
     if (on_hex) on_hex.toggle();
+    var on_path = Catan.Util.xy_to_path(event.pageX-Catan.Draw.offset.left, event.pageY-Catan.Draw.offset.top);
+    if (on_path) on_path.stick();
   }).mousemove(function(event) {
     if (Catan.Draw.outside_bounds(event.pageX, event.pageY)) null;
     Catan.Draw.nuke_intersections_and_paths();
