@@ -222,6 +222,7 @@ Catan.Draw.zoom = function(out, amount) {
   this.context.fillStyle = "white";
   this.context.fillRect(0, 0, this.board.width(), this.board.height());
   this.hex_width += out ? amount : -amount;
+  //this.origin.top += Math.floor(Math.abs(amount) * 0.866) * amount/Math.abs(amount);
   this.hex_store = [];
   this.zooming = true;
   Catan.State.redraw();

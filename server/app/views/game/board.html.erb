@@ -82,6 +82,12 @@
       <% @players.each do |player| %>
       <li><%= player.name %></li>
       <% end %>
+
+      <br />
+      <br />
+      <br />
+      <button onclick="Catan.Draw.zoom(true, 5)">Zoom In</button>
+      <button onclick="Catan.Draw.zoom(false, 5)">Zoom Out</button>
     </ul>
   </div>
   <div style="clear: both;"> </div>
