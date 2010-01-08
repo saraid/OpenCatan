@@ -190,7 +190,10 @@ Catan.Draw.init = function(hex_width, origin) {
     this.offset.top  += parseInt(this.board.css("borderTopWidth"));
     this.offset.left += parseInt(this.board.css("borderLeftWidth"));
 
-  setInterval(this.loop, 10);
+  setInterval(function() {
+      Catan.State.draw();
+      Catan.Draw.zooming = false;
+  }, 10);
   this.init_events();
 };
 Catan.Draw.outside_bounds = function(x, y) {

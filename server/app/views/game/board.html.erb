@@ -65,10 +65,6 @@
     <% @board.paths.each do |path| -%>
     Catan.State.add_path([<%= path.intersections.collect { |i| i.identifier }.join(',') %>]);
     <% end -%>
-    Catan.Draw.loop = function() {
-      Catan.State.draw();
-      this.zooming = false;
-    };
     Catan.Draw.init(<%= hex_size %>, { top: <%= vertical_padding %>, left: <%= x_offset %> });
   });
 </script>
