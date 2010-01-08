@@ -2,6 +2,14 @@
 <head>
 <title>OpenCatan: Board size <%= params[:id] %></title>
 <style type="text/css">
+  body {
+    background-color: #eee;
+  }
+  #container {
+    margin: 0 auto;
+    width: 800px;
+    background-color: white;
+  }
   canvas { 
     border: solid 10px black; 
     float: left;
@@ -15,9 +23,9 @@
 <script type="text/javascript">
   $(document).ready(function() {
     <% 
-      vertical_padding = 50 
+      vertical_padding = 25 
       hex_size = (params[:hex_size] || 40).to_i
-      canvas_width = hex_size*4*(@board.hex_store.rows.max { |a,b| a.length <=> b.length }.length) - hex_size
+      canvas_width = hex_size*4*(@board.hex_store.rows.max { |a,b| a.length <=> b.length }.length) - (hex_size * 3)
       x_offset = hex_size * 3 / 2
       canvas_height = (vertical_padding * 2) + (hex_size * 1.732).floor*((@board.hex_store.rows.length + 1) / 2)
     -%>
@@ -76,6 +84,9 @@
 </script>
 </head>
 <body>
-<canvas id="board" width="<%= canvas_width %>" height="<%= canvas_height %>"></canvas>
+<div id="container">
+  <canvas id="board" width="<%= canvas_width %>" height="<%= canvas_height %>"></canvas>
+  <div style="clear: both;">Stuff.</div>
+</div>
 </body>
 </html>
