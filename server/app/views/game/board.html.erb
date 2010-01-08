@@ -11,11 +11,12 @@
     background-color: white;
   }
   canvas { 
-    border: solid 10px black; 
+    border: solid 5px black; 
     float: left;
   }
-  div#buttons {
+  div.module {
     float: left;
+    margin-left: 10px;
   }
 </style>
 <script type="text/javascript" src="/javascripts/jquery.js"></script>
@@ -31,17 +32,14 @@
     -%>
     <% @board.hex_store.rows.each_with_index do |row, row_index| 
          row.each_with_index do |hex, offset| 
-          x = (canvas_width / 2) - (x_offset * row.length) + (x_offset * offset * 2) + hex_size / 2
-          y = vertical_padding + (hex_size * 0.866).floor * row_index
     -%>
-    Catan.State.add_hex(<%= x %>, <%= y %>, [<%= Catan::HEX_TYPES[hex.type][:color].join(',') %>],
+    Catan.State.add_hex([<%= Catan::HEX_TYPES[hex.type][:color].join(',') %>],
                         <%= hex.number %>, "<%= hex.type %>",
                         <%= hex.row %>, <%= hex.offset %>);
     <%   end
        end 
     -%>
     <% 
-        offset = 0
         rows = @board.intersection_array
         row = 0
         rows.collect! { |length| Array.new(length/2, 0) }
@@ -56,28 +54,20 @@
           end
           rows[row_index] = rowN + rowN.reverse
         end
+-%>
+    Catan.Intersection.offset_pattern = [[<%= rows.collect { |rowasdfasdf| rowasdfasdf.join(',') }.join('],[') %>]];
+    <%
         @board.intersections.each do |intersection|
-          y = vertical_padding + (hex_size * 0.866).floor*intersection.row
-          x = (canvas_width / 2)
-
-          op = offset < rows[row].length/2 ? :'-' : :'+'
-          x = x.send(op, hex_size * rows[row][offset] / 2)
     -%>
-    Catan.State.add_intersection(<%= intersection.identifier %>, <%= x %>, <%= y %>,
+    Catan.State.add_intersection(<%= intersection.identifier %>, <%= intersection.row %>, <%= intersection.col %>,
                                  [<%= intersection.hexes.collect { |hex| "[#{hex.row},#{hex.offset}]" }.join(',') %>]);
-    <%    offset += 1
-          if offset == rows[row].length
-            row += 1
-            offset = 0
-          end
-        end -%>
-    <% @board.paths.each do |path|
-    -%>
+    <% end -%>
+    <% @board.paths.each do |path| -%>
     Catan.State.add_path([<%= path.intersections.collect { |i| i.identifier }.join(',') %>]);
-    <% end
-    -%>
+    <% end -%>
     Catan.Draw.loop = function() {
       Catan.State.draw();
+      this.zooming = false;
     };
     Catan.Draw.init(<%= hex_size %>, { top: <%= vertical_padding %>, left: <%= x_offset %> });
   });
@@ -86,7 +76,15 @@
 <body>
 <div id="container">
   <canvas id="board" width="<%= canvas_width %>" height="<%= canvas_height %>"></canvas>
-  <div style="clear: both;">Stuff.</div>
+  <div class="module">
+    <h3>Players:</h3>
+    <ul>
+      <% @players.each do |player| %>
+      <li><%= player.name %></li>
+      <% end %>
+    </ul>
+  </div>
+  <div style="clear: both;"> </div>
 </div>
 </body>
 </html>

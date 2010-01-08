@@ -1,10 +1,14 @@
 require 'catan/board'
+require 'catan/player'
+require 'random_data'
 
 class GameController < ApplicationController
   helper :all # include all helpers, all the time
   #protect_from_forgery # See ActionController::RequestForgeryProtection for details
 
   def board
+    @players = Array.new(3)
+    @players.collect! { |player| player = Player.new(Random.firstname, :blue) }
     @board = Board.new(params[:id])
     render :action => 'board'
   end
