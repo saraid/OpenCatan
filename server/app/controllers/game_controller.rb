@@ -8,7 +8,7 @@ class GameController < ApplicationController
 
   def board
     @players = Array.new(3)
-    @players.collect! { |player| player = Player.new(Random.firstname, :blue) }
+    @players.collect! { |player| player = Player.new(Random.firstname, Random.color) }
     @board = Board.new(params[:id])
     render :action => 'board'
   end
