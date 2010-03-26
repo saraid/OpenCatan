@@ -21,4 +21,17 @@ class Player
       end
     end
   end
+
+    # A turn begins when the previous turn ends.
+    # A turn ends when the player submits DONE.
+    class Turn
+      attr_reader :game
+
+      def initialize(game)
+        @game = game
+      end
+    end
+
+    class Action
+    end
 end
