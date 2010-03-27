@@ -115,6 +115,7 @@ module OpenCatan
       attr_reader :piece, :paths, :id
       def piece=(piece)
         raise OpenCatanException, "Intersection #{@id} in use." if @piece
+        raise OpenCatanException, "Intersection near #{@id} in use." if @paths.any? do |path| path.has_piece_on_other_side_of(self) end
         @piece = piece
       end
 
@@ -141,7 +142,7 @@ module OpenCatan
       end
 
       def has_piece_on_other_side_of(intersection)
-        !other_side.piece.nil?
+        !other_side(intersection).piece.nil?
       end
 
       def other_side(intersection)
