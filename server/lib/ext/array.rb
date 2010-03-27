@@ -7,4 +7,8 @@ class Array
       self[dest] = t
     end
   end
+
+  def to_s
+    join(', ')
+  end
 end

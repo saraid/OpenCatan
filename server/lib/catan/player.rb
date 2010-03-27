@@ -23,6 +23,11 @@ module OpenCatan
       end
     end
 
+    def play_piece(type)
+      raise OpenCatanException, "Out of pieces" if @pieces_remaining[type].empty?
+      @pieces_remaining[type].shift
+    end
+
     attr_reader :game
     def join_game(game)
       @game = game

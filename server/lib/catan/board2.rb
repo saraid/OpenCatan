@@ -29,18 +29,24 @@ module OpenCatan
     end
     attr_accessor :longest_row
 
+    class Count
+      def initialize; @count = 0; end
+      def plusplus; @count = @count.succ; end
+    end
+
     def build_intersections_and_paths
-      first_row.each do |hex| 2.times do hex.place_intersection Intersection.new end end
-      last_row.each  do |hex| 2.times do hex.place_intersection Intersection.new end end
+      intersections = Count.new
+      first_row.each do |hex| 2.times do hex.place_intersection Intersection.new(intersections.plusplus) end end
+      last_row.each  do |hex| 2.times do hex.place_intersection Intersection.new(intersections.plusplus) end end
       each_with_index do |row, index|
         if (index % 2).zero?
-          row.first.place_intersection Intersection.new
-          row.last.place_intersection Intersection.new
+          row.first.place_intersection Intersection.new(intersections.plusplus)
+          row.last.place_intersection Intersection.new(intersections.plusplus)
         end
         row.each_with_index do |hex, offset|
           hex.neighbor_pairs.each do |pair|
             next if pair.all? do |location| !valid_location?(location) end
-            intersection = Intersection.new
+            intersection = Intersection.new(intersections.plusplus)
             pair.collect! do |location| find_by_location(location) end
             pair.compact!
             pair << hex
@@ -48,15 +54,22 @@ module OpenCatan
           end
         end
       end
-      each do |row| row.each do |hex|
-          hex.connect_intersections!
-        end
+      flatten.each do |hex|
+        hex.connect_intersections!
       end
       self
     end
 
     def find_by_location(location)
       self[location.row][location.offset] if valid_location?(location)
+    end
+
+    def find_intersection(id)
+      flatten.detect do |hex|
+        hex.intersections.detect do |intersection|
+          intersection.id = id
+        end
+      end
     end
 
     def valid_location?(location)
@@ -84,9 +97,10 @@ module OpenCatan
     end
 
     class Intersection
-      def initialize
+      def initialize(id)
         @hexes = []
         @paths = []
+        @id = id
       end
       def in_hex(hex, recursing = false)
         return if @hexes.include? hex || hex.nil?
@@ -97,6 +111,20 @@ module OpenCatan
       def connect_with(intersection)
         @paths << Path.new(intersection, self)
       end
+
+      attr_reader :piece, :paths, :id
+      def piece=(piece)
+        raise OpenCatanException, "Intersection #{@id} in use." if @piece
+        @piece = piece
+      end
+
+      def to_s
+        @id.to_s
+      end
+
+      def inspect
+        "(#{@hexes.collect {|x|x.inspect}.join('|')})"
+      end
     end
 
     class Path
@@ -104,6 +132,28 @@ module OpenCatan
         @intersections = []
         @intersections << intersection1
         @intersections << intersection2
+      end
+
+      attr_reader :piece
+      def piece=(piece)
+        raise OpenCatanException, "Path #{self} in use." if @piece
+        @piece = piece
+      end
+
+      def has_piece_on_other_side_of(intersection)
+        !other_side.piece.nil?
+      end
+
+      def other_side(intersection)
+        @intersections.detect { |inter| inter != intersection }
+      end
+
+      def to_s
+        "[#{@intersections.join('-')}]"
+      end
+
+      def inspect
+        "[#{@intersections.collect {|x|x.inspect}.join('-')}]"
       end
     end
 
@@ -121,7 +171,7 @@ module OpenCatan
         @intersections = []
         @paths = []
       end
-      attr_reader :location
+      attr_reader :location, :intersections
 
       def set_location(row, offset)
         @location = Location.new(row, offset)
