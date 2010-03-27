@@ -6,3 +6,18 @@ Yes, that means without using Flash or Java Applets as the main medium of displa
 
 Whee.
 
+Design Goals
+* Arbitrary map designs
+** Serializable
+* 2-10 players
+* API hooks for AI design
+* Canvas-based rendering engine
+** Client agnostic
+
+Significant Codebases, in order of priority
+* Catan in Ruby library
+** Serialization language for maps
+* Canvas-based hex-map renderer in Javascript.
+* Rails-Juggernaut chat server, with a Catan protocol piggybacking.
+* A play interface, including Dashboard and Trade.
+
