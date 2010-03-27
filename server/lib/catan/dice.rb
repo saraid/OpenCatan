@@ -1,13 +1,18 @@
-class Dice
-  @@history = []
+module OpenCatan
+  class Dice
+    def initialize
+      @history = []
+      @remember = false
+    end
+    attr_reader :history
 
-  def self.roll(number = 1, sides = 6)
-    @@history << Array.new(number).collect { |die| rand(sides) + 1 }
-    @@history.last.inject(0) { |sum,n| sum + n }
+    def remember; @remember = true;  self; end
+    def forget;   @remember = false; self; end
+
+    def roll(number = 1, sides = 6)
+      @history << Array.new(number).collect { |die| rand(sides) + 1 }
+      action = @remember ? :last : :pop
+      @history.send(action).inject(0) { |sum,n| sum + n }
+    end
   end
-
-  def self.history
-    @@history
-  end
-
 end
