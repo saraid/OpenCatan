@@ -11,7 +11,7 @@ module OpenCatan
     def initialize
       @deck = Deck.new
       @dice = Dice.new
-      @board = Board.deserialize_from_yaml("lib/catan/sample/vanilla3x5.yml")
+      @board = Board.deserialize_from_yaml("lib/catan/sample/meh5x9.yml")
       @players = []
       @player_pointer = nil
     end
@@ -25,6 +25,7 @@ module OpenCatan
     end
 
     def current_player
+      log "Current player pointer: #{@player_pointer}"
       @players[@player_pointer]
     end
 
@@ -33,21 +34,38 @@ module OpenCatan
       @player_pointer = 0 if @player_pointer == @players.length
     end
 
+    def reverse_pointer
+      @player_pointer = @player_pointer - 1
+      @player_pointer = @players.length - 1 if @player_pointer == -1
+    end
+
     def self.test
       require 'random_data'
       game = Game.new
-      5.times do |x| game.add_player(Player.new(Random.firstname, Random.color)) end
+      np = 4
+      np.times do |x| game.add_player(Player.new(Random.firstname, Random.color)) end
 
       rolls = game.players.collect do |player| player.act(Player::Action::Roll.new) end
       game.player_pointer = rolls.index rolls.max
+      log
       log "#{game.players[game.player_pointer].name} goes first!"
 
       board = game.board
-      5.times do |x|
-        intersection = board[2][1].intersections.rand
+      rows    = [4, 1, 1, 3, 2, 4, 7, 8, 2, 4]
+      offsets = [1, 3, 1, 1, 1, 1, 3, 3, 4, 4]
+
+      np.times do |i|
+        intersection = board[rows[i]][offsets[i]].intersections[5-i]
         game.current_player.act(Player::Action::PlaceSettlement.on(intersection))
         game.current_player.act(Player::Action::PlaceRoad.on(intersection.paths.rand))
         game.advance_player
+      end
+      log 'reverse'
+      np.times do |i|
+        game.reverse_pointer
+        intersection = board[rows[2*i]][offsets[2*i]].intersections[i+3]
+        game.current_player.act(Player::Action::PlaceSettlement.on(intersection))
+        game.current_player.act(Player::Action::PlaceRoad.on(intersection.paths.rand))
       end
 
       game
