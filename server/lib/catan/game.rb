@@ -25,7 +25,6 @@ module OpenCatan
     end
 
     def current_player
-      log "Current player pointer: #{@player_pointer}"
       @players[@player_pointer]
     end
 
@@ -52,18 +51,17 @@ module OpenCatan
 
       board = game.board
       rows    = [4, 1, 1, 3, 2, 4, 7, 8, 2, 4]
-      offsets = [1, 3, 1, 1, 1, 1, 3, 3, 4, 4]
+      offsets = [1, 3, 1, 1, 2, 2, 3, 3, 4, 4]
 
       np.times do |i|
-        intersection = board[rows[i]][offsets[i]].intersections[5-i]
+        intersection = board[rows[i]][offsets[i]].intersections.first
         game.current_player.act(Player::Action::PlaceSettlement.on(intersection))
         game.current_player.act(Player::Action::PlaceRoad.on(intersection.paths.rand))
         game.advance_player
       end
-      log 'reverse'
       np.times do |i|
         game.reverse_pointer
-        intersection = board[rows[2*i]][offsets[2*i]].intersections[i+3]
+        intersection = board[rows[np+i]][offsets[np+i]].intersections.first
         game.current_player.act(Player::Action::PlaceSettlement.on(intersection))
         game.current_player.act(Player::Action::PlaceRoad.on(intersection.paths.rand))
       end
