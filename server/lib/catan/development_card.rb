@@ -1,8 +1,14 @@
+require 'uuidtools'
+
 module OpenCatan
   class Deck
 
     class DevelopmentCard
       AMOUNT_IN_DECK = 0
+      def initialize
+        @id = UUIDTools::UUID.random_create.to_s # Yay overkill
+      end
+      attr_reader :id
     end
 
     class ProgressCard < DevelopmentCard
