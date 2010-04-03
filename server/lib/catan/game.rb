@@ -24,13 +24,23 @@ module OpenCatan
       player.join_game(self)
     end
 
+    def start_game
+      @turns = []
+      @turns << Player::Turn.new(current_player, self)
+    end
+
     def current_player
       @players[@player_pointer]
+    end
+
+    def current_turn
+      @turns.last
     end
 
     def advance_player
       @player_pointer = @player_pointer.succ
       @player_pointer = 0 if @player_pointer == @players.length
+      @turns << Player::Turn.new(current_player, self) if @turns
     end
 
     def reverse_pointer
@@ -69,15 +79,12 @@ module OpenCatan
         game.current_player.act(Player::Action::PlaceRoad.on(intersection.paths.rand))
       end
 
-      roll = game.current_player.act(Player::Action::Roll.new)
-      log "Hexes: #{game.board.find_hexes_by_number(roll).join(',')}"
-      game.board.find_hexes_by_number(roll).each do |hex|
-        next if hex.has_robber?
-        hex.intersections.each do |intersection|
-          if intersection.piece
-            intersection.piece.owner.receive hex.product
-          end
-        end
+      game.dice.remember
+      game.start_game
+
+      10.times do |i|
+        game.current_turn.do_roll
+        game.advance_player
       end
 
       game

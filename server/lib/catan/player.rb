@@ -26,6 +26,10 @@ module OpenCatan
       end
     end
 
+    def hand_size
+      @resources.values.inject(0) do |sum, n| sum + n end
+    end
+
     def play_piece(type)
       raise OpenCatanException, "Out of pieces" if @pieces_remaining[type].empty?
       @pieces_remaining[type].shift
@@ -48,12 +52,28 @@ module OpenCatan
     class Turn
       attr_reader :game
 
-      def initialize(game)
+      def initialize(player, game)
+        @player = player
         @game = game
+        @possible_actions = [ :Roll, :PlayCard ]
       end
-    end
 
-    class Action
+      def do_roll
+        roll = @player.act(Player::Action::Roll.new)
+        log "Hexes with #{roll}: #{game.board.find_hexes_by_number(roll).join(',')}"
+        game.board.find_hexes_by_number(roll).each do |hex|
+          if hex.has_robber?
+            log "#{hex} is being robbed!"
+            next
+          end
+          hex.intersections.each do |intersection|
+            if intersection.piece
+              intersection.piece.owner.receive hex.product
+            end
+          end
+        end
+      end
+      
     end
   end
 end
