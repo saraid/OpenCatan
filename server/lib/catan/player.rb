@@ -20,6 +20,9 @@ module OpenCatan
         Piece.const_get(type).const_get(:AMOUNT_PER_PLAYER).times do |i|
           @pieces_remaining[type.downcase.to_sym] << Piece.const_get(type).new
         end
+        @pieces_remaining[type.downcase.to_sym].each do |piece|
+          piece.owner = self
+        end
       end
     end
 

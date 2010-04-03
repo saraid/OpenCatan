@@ -78,6 +78,12 @@ module OpenCatan
       end
     end
 
+    def find_hexes_by_number(number)
+      flatten.select do |hex|
+        hex.number == number
+      end
+    end
+
     def valid_location?(location)
       (   location.row >= 0     \
        && location.row < height \
@@ -177,8 +183,18 @@ module OpenCatan
       def initialize
         @intersections = []
         @paths = []
+        @number = rand(12) unless product.nil?
+        @robber = false
       end
-      attr_reader :location, :intersections
+      attr_reader :location, :intersections, :number
+
+      def type
+        self.class.to_s.split('::').last
+      end
+
+      def has_robber?
+        @robber
+      end
 
       def set_location(row, offset)
         @location = Location.new(row, offset)
@@ -230,11 +246,11 @@ module OpenCatan
       end
 
       def self.produces resource
-        @@produces = resource
+        @produces = resource
       end
 
-      def produces
-        @@produces
+      def product
+        self.class.instance_variable_get :@produces
       end
 
       class Desert < Hex

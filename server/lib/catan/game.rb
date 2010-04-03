@@ -66,6 +66,17 @@ module OpenCatan
         game.current_player.act(Player::Action::PlaceRoad.on(intersection.paths.rand))
       end
 
+      roll = game.current_player.act(Player::Action::Roll.new)
+      log "Hexes: #{game.board.find_hexes_by_number(roll).join(',')}"
+      game.board.find_hexes_by_number(roll).each do |hex|
+        next if hex.has_robber?
+        hex.intersections.each do |intersection|
+          if intersection.piece
+            log "#{intersection.piece.owner.name} receives 1 #{hex.product}" unless hex.product.nil?
+          end
+        end
+      end
+
       game
     end
   end

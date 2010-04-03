@@ -2,7 +2,9 @@ require 'catan/catan'
 
 class Piece
 
-  class Settlement
+  attr_accessor :owner
+
+  class Settlement < Piece
     AMOUNT_PER_PLAYER = 5
     REQUIRES = ::Catan::RESOURCES.merge({
       :wood  => 1,
@@ -12,7 +14,7 @@ class Piece
     })
   end
 
-  class City
+  class City < Piece
     AMOUNT_PER_PLAYER = 4
     REQUIRES = ::Catan::RESOURCES.merge({
       :wheat => 2,
@@ -20,7 +22,7 @@ class Piece
     })
   end
 
-  class Road
+  class Road < Piece
     AMOUNT_PER_PLAYER = 15
     REQUIRES = ::Catan::RESOURCES.merge({
       :wood  => 1,
@@ -28,7 +30,7 @@ class Piece
     })
   end
 
-  class Boat
+  class Boat < Piece
     AMOUNT_PER_PLAYER = 15
     REQUIRES = ::Catan::RESOURCES.merge({
       :wood  => 1,
@@ -36,7 +38,7 @@ class Piece
     })
   end
 
-  class Robber
+  class Robber < Piece
     AMOUNT_PER_PLAYER = 0
   end
 
