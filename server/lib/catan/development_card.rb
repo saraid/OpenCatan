@@ -1,12 +1,10 @@
-require 'uuidtools'
-
 module OpenCatan
   class Deck
 
     class DevelopmentCard
       AMOUNT_IN_DECK = 0
       def initialize
-        @id = UUIDTools::UUID.random_create.to_s # Yay overkill
+        @id = self.object_id # Just need a unique identifier.
       end
       attr_reader :id
     end
