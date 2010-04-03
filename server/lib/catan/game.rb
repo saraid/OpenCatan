@@ -63,6 +63,9 @@ module OpenCatan
         game.reverse_pointer
         intersection = board[rows[np+i]][offsets[np+i]].intersections.first
         game.current_player.act(Player::Action::PlaceSettlement.on(intersection))
+        intersection.hexes.each do |hex|
+          game.current_player.receive hex.product
+        end
         game.current_player.act(Player::Action::PlaceRoad.on(intersection.paths.rand))
       end
 
@@ -72,7 +75,7 @@ module OpenCatan
         next if hex.has_robber?
         hex.intersections.each do |intersection|
           if intersection.piece
-            log "#{intersection.piece.owner.name} receives 1 #{hex.product}" unless hex.product.nil?
+            intersection.piece.owner.receive hex.product
           end
         end
       end

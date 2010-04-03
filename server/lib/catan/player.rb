@@ -31,6 +31,13 @@ module OpenCatan
       @pieces_remaining[type].shift
     end
 
+    def receive(resource)
+      return if resource.nil?
+      resource = @resources.keys.rand if resource == :gold # Hack it for now
+      @resources[resource] = @resources[resource].succ
+      log "#{name} receives 1 #{resource}"
+    end
+
     attr_reader :game
     def join_game(game)
       @game = game

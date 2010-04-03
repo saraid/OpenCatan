@@ -8,7 +8,7 @@ class Catan
     :clay  => 0,
     :ore   => 0,
     :sheep => 0,
-  }.freeze
+  }
 
   HEX_TYPES = {
     :desert    => {:produces => nil,    :color => [255, 222, 173] },
@@ -18,5 +18,5 @@ class Catan
     :mountains => {:produces => :ore,   :color => [112, 128, 144] },
     :hills     => {:produces => :clay,  :color => [233, 116, 81]  },
     :water     => {:produces => nil,    :color => [0, 127, 255]   }
-  }.freeze
+  }
 end
