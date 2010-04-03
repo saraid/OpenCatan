@@ -48,6 +48,16 @@ module OpenCatan
       @player_pointer = @players.length - 1 if @player_pointer == -1
     end
 
+    def submit_player_command(action, parameters = [])
+      log action
+      case action
+      when 'roll'
+        current_turn.roll_dice
+      when 'done'
+        current_turn.done
+      end
+    end
+
     def self.test
       require 'random_data'
       game = Game.new
@@ -83,8 +93,8 @@ module OpenCatan
       game.start_game
 
       10.times do |i|
-        game.current_turn.do_roll
-        game.advance_player
+        game.submit_player_command "roll"
+        game.submit_player_command "done"
       end
 
       game

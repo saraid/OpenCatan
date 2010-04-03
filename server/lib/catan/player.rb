@@ -1,4 +1,5 @@
 require 'catan/piece'
+require 'catan/action'
 
 module OpenCatan
   class Player
@@ -49,19 +50,45 @@ module OpenCatan
 
     # A turn begins when the previous turn ends.
     # A turn ends when the player submits DONE.
+    require 'state_machine'
     class Turn
       attr_reader :game
 
       def initialize(player, game)
         @player = player
         @game = game
-        @possible_actions = [ :Roll, :PlayCard ]
+        @actions = []
+        super()
+      end
+
+      state_machine :dice_state, :namespace => 'dice', :action => :do_roll, :initial => :rolling do 
+        event :roll do
+          transition :rolling => :rolled
+        end
+      end
+
+      state_machine :robber_state, :initial => :robber_unmoved do
+        after_transition :to => :discard_cards do |x, y| log "Rolled a 7!" end
+        event :rolled_a_seven, :play_knight do
+          transition :robber_unmoved => :discard_cards
+        end
+        event :discarding_done do
+          transition :discard_cards => :place_robber
+        end
+        event :place_robber do
+          transition :place_robber => :robber_moved
+        end
+      end
+
+      def done
+        @game.advance_player
       end
 
       def do_roll
-        roll = @player.act(Player::Action::Roll.new)
-        log "Hexes with #{roll}: #{game.board.find_hexes_by_number(roll).join(',')}"
-        game.board.find_hexes_by_number(roll).each do |hex|
+        @roll = @player.act(Player::Action::Roll.new)
+        rolled_a_seven and return if @roll == 7
+        log "Hexes with #{@roll}: #{game.board.find_hexes_by_number(@roll).join(',')}"
+        game.board.find_hexes_by_number(@roll).each do |hex|
           if hex.has_robber?
             log "#{hex} is being robbed!"
             next
