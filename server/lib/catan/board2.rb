@@ -29,24 +29,18 @@ module OpenCatan
     end
     attr_accessor :longest_row
 
-    class Count
-      def initialize; @count = 0; end
-      def plusplus; @count = @count.succ; end
-    end
-
     def build_intersections_and_paths
-      intersections = Count.new
-      first_row.each do |hex| 2.times do hex.place_intersection Intersection.new(intersections.plusplus) end end
-      last_row.each  do |hex| 2.times do hex.place_intersection Intersection.new(intersections.plusplus) end end
+      first_row.each do |hex| 2.times do hex.place_intersection Intersection.new end end
+      last_row.each  do |hex| 2.times do hex.place_intersection Intersection.new end end
       each_with_index do |row, index|
         if (index % 2).zero?
-          row.first.place_intersection Intersection.new(intersections.plusplus)
-          row.last.place_intersection Intersection.new(intersections.plusplus)
+          row.first.place_intersection Intersection.new
+          row.last.place_intersection Intersection.new
         end
         row.each_with_index do |hex, offset|
           hex.neighbor_pairs.each do |pair|
             next if pair.all? do |location| !valid_location?(location) end
-            intersection = Intersection.new(intersections.plusplus)
+            intersection = Intersection.new
             pair.collect! do |location| find_by_location(location) end
             pair.compact!
             pair << hex
@@ -109,10 +103,10 @@ module OpenCatan
     end
 
     class Intersection
-      def initialize(id)
+      def initialize
         @hexes = []
         @paths = []
-        @id = id
+        @id = self.object_id
       end
       def in_hex(hex, recursing = false)
         return if @hexes.include? hex || hex.nil?
