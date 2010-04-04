@@ -1,350 +1,294 @@
-require 'catan/catan'
+module OpenCatan
+  class Board < Array
 
-class Board
+    class LoadError < Exception; end
 
-  class HexStore
-    def initialize
-      @rows = []
-    end
-    attr_reader :rows
+    def self.deserialize_from_yaml(file)
+      board = Board.new
+      map = YAML.load(File.open(file) do |file| file.read end)
 
-    def new_row=(row)
-      @rows << row
-    end
-
-    def length
-      @rows.length
-    end
-
-    def fetch(row, offset)
-      rv = @rows[row][offset]
-      puts "#{row} #{offset}" if rv.nil?
-      rv
-    end
-
-    def hexes
-      @rows.flatten
-    end
-  end
-
-  class Hex
-
-    def initialize(number, type, row, offset)
-      @number = number
-      @type   = type
-      @row    = row
-      @offset = offset
-      @intersections = []
-    end
-    attr_reader :number, :type
-    attr_reader :row, :offset
-    attr_reader :intersections
-
-    def to_s
-      "#{@row} #{@offset}"
-    end
-
-    def fill_intersection(intersection)
-      return if @intersections.include? intersection
-      raise "Attempted to fill in too many intersections!" if @intersections.length >= 6
-      @intersections << intersection
-      intersection.connect_with_hex(self)
-    end
-
-    def notify_with_resource
-      @filled_intersections.each do |settlement|
-        settlement.receive_resource(type)
+      board.longest_row = map.max do |a, b| a.length <=> b.length end
+      valid = false
+      map.each_with_index do |row, index|
+        valid = (row.length == ((index % 2).zero?) \
+                  ? board.longest_row.length             \
+                  : board.longest_row.length-1)          \
+                || valid
       end
-    end
-  end
+      raise LoadError, "Invalid board format" unless valid
 
-  class Intersection
-    include Comparable
-    def initialize(id)
-      @identifier = id
-      @paths = []
-      @hexes = []
+      map.each_with_index do |raw_row, index|
+        row = Row.new
+        raw_row.each_with_index do |hex, offset|
+          row << "OpenCatan::Board::Hex::#{hex}".constantize.new
+          row[offset].set_location(index, offset)
+        end
+        board << Row.new(row)
+      end
+      board.build_intersections_and_paths
     end
-    attr_reader :identifier, :paths, :hexes
-    attr_reader :row, :col
+    attr_accessor :longest_row
 
-    def <=>(other)
-      @identifier <=> other.identifier
-    end
-
-    def connect_with_hex(hex)
-      raise "Attempted to add too many hexes!" if @hexes.length >= 3
-      @hexes << hex
-    end
-    def set_xy(row, col)
-      @row = row
-      @col = col
+    def build_intersections_and_paths
+      first_row.each do |hex| 2.times do hex.place_intersection Intersection.new end end
+      last_row.each  do |hex| 2.times do hex.place_intersection Intersection.new end end
+      each_with_index do |row, index|
+        if (index % 2).zero?
+          row.first.place_intersection Intersection.new
+          row.last.place_intersection Intersection.new
+        end
+        row.each_with_index do |hex, offset|
+          hex.neighbor_pairs.each do |pair|
+            next if pair.all? do |location| !valid_location?(location) end
+            intersection = Intersection.new
+            pair.collect! do |location| find_by_location(location) end
+            pair.compact!
+            pair << hex
+            pair.each do |this_hex| intersection.in_hex(this_hex) end
+          end
+        end
+      end
+      flatten.each do |hex|
+        hex.connect_intersections!
+      end
       self
     end
 
-    def add_path(path)
-      return if @paths.include? path
-      raise "Attempted to add too many paths!" if @paths.length >= 3
-      @paths << path
+    def find_by_location(location)
+      self[location.row][location.offset] if valid_location?(location)
     end
-  end
 
-  class Path
-    @@paths = [] # For debugging
-    def self.dump_paths 
-
-      Board::Path.paths.each do |path|
-        foo = path.instance_variable_get :@intersections
-        foo.each do |intersection|
-          print " #{"%3d" % intersection.instance_variable_get(:@identifier)} |"
+    def find_intersection(id)
+      flatten.each do |hex|
+        intersection = hex.intersections.detect do |intersection|
+          intersection.id == id
         end
-        print "\n"
+        return intersection if intersection
       end
       nil
     end
-    def self.clear_paths; @@paths = []; end
 
-    def initialize(intersection1, intersection2, sailable = false)
-      @intersections = [intersection1, intersection2].sort
-      @intersections.each { |intersection| intersection.add_path self }
-      @sailable = sailable
-      @@paths << self
-    end
-    attr_reader :intersections, :sailable
-
-    def to_s
-      "[#{@intersections.collect { |x| x.identifier }.join ' '}]"
-    end
-
-    def ==(other)
-      @intersections.all? { |i| other.intersections.include? i }
-    end
-  end
-
-  # Map Types
-  # :hex, :square, :rectangle
-  # 
-  # Hex and square sizes defined by top border.
-  # 
-  def initialize(map_size = 4, map_type = :hex)
-    Board::Path.clear_paths # For debugging
-    @hex_store = HexStore.new
-    map_size = map_size.to_i
-    map_size = 2 if map_size < 2
-    @size = map_size
-
-    hex_shaped_map(@size)
-  end
-  attr_reader :hex_store, :size, :intersections, :intersection_array, :paths
-
-  def hex_shaped_map(size)
-
-    #
-    # Build hexes
-    #
-
-    # Define rows of hexes
-    row_array = (1...size).to_a
-    tmp = row_array.reverse.clone
-    (2*size-3).times do |i| 
-      row_array << ((i % 2).zero?() ? size : size-1)
-    end
-    row_array = row_array + tmp
-
-    # Create distribution
-    seed_array = Catan::HEX_TYPES.collect { |key, value| key if value[:produces] }.compact
-    terrain_distribution = []
-    row_array.inject(0) { |sum, n| sum + n }.times do |i|
-      terrain_distribution << seed_array[i % seed_array.length]
-    end
-    terrain_distribution.randomize!
-    terrain_distribution[rand(terrain_distribution.length)] = :desert
-
-    # Create hexes
-    row_array.each_with_index do |length, row|
-      @hex_store.new_row = (0...length).collect do |offset|
-        Hex.new(rand(12), terrain_distribution.shift, row, offset)
+    def find_path(endpoints)
+      endpoints = endpoints.split('-').collect do |x| x.to_i end if endpoints.respond_to? :split
+      endpoint = nil
+      flatten.each do |hex|
+        endpoint ||= hex.intersections.detect do |intersection|
+          endpoints.include? intersection.id
+        end
+      end
+      return nil unless endpoint
+      endpoint.paths.detect do |path|
+        endpoints.include? path.other_side(endpoint).id
       end
     end
 
-    #
-    # Build intersections
-    #
-
-    # Count intersections
-    intersections = (2..(2*size)).inject(0) do |sum, n|
-      if (n%2).zero?
-        if n == 2*size
-          sum + (2*size-1)*2*size
-        else
-          sum + (2*n)
-        end
-      else
-        sum
+    def find_hexes_by_number(number)
+      flatten.select do |hex|
+        hex.number == number
       end
     end
 
-    # Create intersections
-    @intersections = []
-    intersections.times do |id|
-      @intersections << Intersection.new(id)
+    def valid_location?(location)
+      (   location.row >= 0     \
+       && location.row < height \
+       && location.offset >= 0  \
+       && location.offset < ((location.row % 2).zero? ? width : width-1)
+      )
     end
 
-    # Define rows of intersections
-    intersection_array = (2..(2*size)).select {|x|(x%2).zero?}
-    tmp = intersection_array.reverse.clone
-    (2*size-3).times do intersection_array << intersection_array[-1] end
-    intersection_array = intersection_array + tmp
-    @intersection_array = intersection_array
-    
-    # Pattern A - X0XX0XX0...
-    # Pattern B - XX0XX0XX...
-    intersection_index = 0
-    intersection_array.each_with_index do |intersection_count, row_index|
-      if row_index < size
-        intersection_count.times do |offset|
-          @hex_store.fetch(row_index, offset / 2).fill_intersection @intersections[intersection_index].set_xy(row_index, offset)
-          if offset > 0 && offset < intersection_count-1
-            @hex_store.fetch(row_index - 1, (offset - 1) / 2).fill_intersection @intersections[intersection_index].set_xy(row_index, offset) 
-          end
-          if offset > 1 && offset < intersection_count-2
-            @hex_store.fetch(row_index - 2, (offset - 2) / 2).fill_intersection @intersections[intersection_index].set_xy(row_index, offset)
-          end
-          intersection_index += 1
-        end
-      elsif row_index >= size && row_index < intersection_array.length-size
-        if (size + row_index) % 2 == 0 # Pattern A
-          intersection_count.times do |offset|
-            @hex_store.fetch(row_index - 1, offset / 2).fill_intersection @intersections[intersection_index].set_xy(row_index, offset)
-            if offset > 0 && offset < intersection_count-1
-              @hex_store.fetch(row_index, (offset - 1) / 2).fill_intersection @intersections[intersection_index].set_xy(row_index, offset)
-              @hex_store.fetch(row_index - 2, (offset - 1) / 2).fill_intersection @intersections[intersection_index].set_xy(row_index, offset)
-            end
-            intersection_index += 1
-          end
-        else                           # Pattern B
-          intersection_count.times do |offset|
-            @hex_store.fetch(row_index - 2, offset / 2).fill_intersection @intersections[intersection_index].set_xy(row_index, offset)
-            if offset > 0 && offset < intersection_count-1
-              @hex_store.fetch(row_index - 1, (offset - 1) / 2).fill_intersection @intersections[intersection_index].set_xy(row_index, offset)
-            end
-            @hex_store.fetch(row_index, offset / 2).fill_intersection @intersections[intersection_index].set_xy(row_index, offset)
-            intersection_index += 1
-          end
-        end
-      else 
-        intersection_count.times do |offset|
-          @hex_store.fetch(row_index - 2, offset / 2).fill_intersection @intersections[intersection_index].set_xy(row_index, offset)
-          if offset > 0 && offset < intersection_count-1
-            @hex_store.fetch(row_index - 1, (offset - 1) / 2).fill_intersection @intersections[intersection_index].set_xy(row_index, offset)
-          end
-          if offset > 1 && offset < intersection_count-2
-            @hex_store.fetch(row_index, (offset - 2) / 2).fill_intersection @intersections[intersection_index].set_xy(row_index, offset)
-          end
-          intersection_index += 1
+    def first_row
+      self.first
+    end
+
+    def last_row
+      self.last
+    end
+
+    def width
+      longest_row.length
+    end
+
+    def height
+      length
+    end
+
+    class Intersection
+      def initialize
+        @hexes = []
+        @paths = []
+        @id = self.object_id
+      end
+      def in_hex(hex, recursing = false)
+        return if @hexes.include? hex || hex.nil?
+        @hexes << hex
+        hex.place_intersection(self, true) unless recursing
+      end
+
+      def connect_with(intersection)
+        @paths << Path.new(intersection, self)
+      end
+
+      attr_reader :piece, :hexes, :paths, :id
+      def piece=(piece)
+        raise OpenCatanException, "Intersection #{@id} in use." if @piece
+        raise OpenCatanException, "Intersection near #{@id} in use." if @paths.any? do |path| path.has_piece_on_other_side_of(self) end
+        @piece = piece
+      end
+
+      def to_s
+        @id.to_s
+      end
+
+      def inspect
+        "(#{@hexes.collect {|x|x.inspect}.join('|')})"
+      end
+    end
+
+    class Path
+      def initialize(intersection1, intersection2)
+        @intersections = []
+        @intersections << intersection1
+        @intersections << intersection2
+      end
+
+      attr_reader :piece
+      def piece=(piece)
+        raise OpenCatanException, "Path #{self} in use." if @piece
+        @piece = piece
+      end
+
+      def has_piece_on_other_side_of(intersection)
+        !other_side(intersection).piece.nil?
+      end
+
+      def other_side(intersection)
+        @intersections.detect { |inter| inter != intersection }
+      end
+
+      def to_s
+        "[#{@intersections.join('-')}]"
+      end
+
+      def inspect
+        "[#{@intersections.collect {|x|x.inspect}.join('-')}]"
+      end
+    end
+
+    class Row < Array # of Hexes
+      def self.create_by_count(hex_count)
+        Row.new(hex_count).collect do |x|
+          Hex.create_random
         end
       end
     end
 
-    #
-    # Create paths
-    #
+    class Hex
 
-    @hex_store.hexes.each do |hex|
-      intersections = hex.intersections
-      Path.new(intersections[0], intersections[1])
-      Path.new(intersections[1], intersections[3])
-      Path.new(intersections[3], intersections[5])
-      Path.new(intersections[5], intersections[4])
-      Path.new(intersections[4], intersections[2])
-      Path.new(intersections[2], intersections[0])
-    end
-
-    @paths = []
-    @intersections.each do |intersection|
-      @paths = @paths + intersection.paths
-    end
-    @paths.uniq!
-
-  end
-  private :hex_shaped_map
-
-  def dump_intersections
-instance_variable_get(:@hex_store).rows.each do |x| x.each do |h| print '['; h.instance_variable_get(:@intersections).each do |i| print i.instance_variable_get(:@identifier); print ' '; end; print ']' end; puts; end;
-  nil
-  end
-
-  def render_ascii
-    size = (@hex_store.length + 5)/4
-    render = ""
-    spaces = 2*size-1
-    spaces.times do print ' ' end
-    print "_\n"
-
-    rows = @hex_store.rows
-    rows[0...size-1].each_with_index do |row, row_index|
-      offsets = []
-      row.collect! do |hex|
-        offsets << hex.offset
-        "/#{hex.row   }\\"
+      def initialize
+        @intersections = []
+        @paths = []
+        @number = rand(12) unless product.nil?
+        @robber = false
       end
-      offsets.pop
-      offsets << ''
+      attr_reader :location, :intersections, :number
 
-      spaces -= 2
-      spaces.times do |i| print ' ' end if spaces > 0
-      print "_#{[row, offsets].transpose.flatten.join}_"
-      print "\n"
-    end
-    spaces -= 2
+      def type
+        self.class.to_s.split('::').last
+      end
 
-    rows[size-1...rows.length-size+1].each_with_index do |row, row_index|
-        next if row_index % 2 == 1
+      def has_robber?
+        @robber
+      end
 
-        row_top = row.clone
-        offsets = []
-        row_top.collect! do |hex|
-          offsets << hex.offset
-          "/#{hex.row   }\\"
+      def set_location(row, offset)
+        @location = Location.new(row, offset)
+      end
+
+      class Location
+        attr_reader :row, :offset
+        def initialize(row, offset)
+          @row = row
+          @offset = offset
         end
 
-        offsets.pop
-        offsets << ''
-
-        print [row_top, offsets].transpose.flatten.join
-        print "\n"
-
-
-        row_bottom = row.clone
-        rowNums = []
-        row_bottom.collect! do |hex|
-          rowNums << hex.row+1
-          "\\#{hex.offset   }/"
+        def self.relative(location, row, offset)
+          Location.new(location.row + row, location.offset + offset)
         end
-        rowNums.pop
-        rowNums << ''
 
-        rowNums.pop
-        rowNums << ''
-
-        print [row_bottom, rowNums].transpose.flatten.join
-        print "\n"
-    end
-
-    spaces += 1
-    rows[rows.length-size+1...rows.length].each_with_index do |row, row_index|
-      rowNums = []
-      row.collect! do |hex|
-        rowNums << hex.row
-        "\\#{hex.offset   }/"
+        def to_s; "<#{@row},#{@offset}>"; end
       end
-      rowNums.pop
-      rowNums << ''
 
-      spaces += 2
-      spaces.times do |i| print ' ' end if spaces > 0
-      print [row, rowNums].transpose.flatten.join
-      print "\n"
+      def to_s; @location.to_s; end
+      def inspect; @location.to_s; end
+
+      def neighbor_pairs
+        hack = (@location.row % 2).zero? ? 0 : 1
+        pairs = []
+        pairs << [Location.relative(@location, -2, 0), Location.relative(@location, -1, 0 + hack)]
+        pairs << [pairs.last.last, Location.relative(@location,  1,  0 + hack)]
+        pairs << [pairs.last.last, Location.relative(@location,  2,  0)]
+        pairs << [pairs.last.last, Location.relative(@location,  1, -1 + hack)]
+        pairs << [pairs.last.last, Location.relative(@location, -1, -1 + hack)]
+        pairs << [pairs.last.last, pairs.first.first]
+        pairs
+      end
+
+      def place_intersection(intersection, recursing = false)
+        return if @intersections.length >= 6 || @intersections.include?(intersection)
+        @intersections << intersection
+        intersection.in_hex(self, true) unless recursing
+      end
+
+      def has_intersection?(intersection)
+        @intersections.include? intersection
+      end
+
+      def connect_intersections!
+        6.times do |index|
+          @intersections[index].connect_with @intersections[index-1]
+        end
+      end
+
+      def self.produces resource
+        @produces = resource
+      end
+
+      def product
+        self.class.instance_variable_get :@produces
+      end
+
+      class Desert < Hex
+        produces nil
+      end
+
+      class Forest < Hex
+        produces :wood
+      end
+
+      class Plain < Hex
+        produces :sheep
+      end
+
+      class Field < Hex
+        produces :wheat
+      end
+
+      class Mountain < Hex
+        produces :ore
+      end
+
+      class Hill < Hex
+        produces :clay
+      end
+
+      class Water < Hex
+        produces nil
+      end
+
+      class Mine < Hex
+        produces :gold
+      end
     end
+
   end
 end

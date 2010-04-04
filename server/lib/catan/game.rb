@@ -1,4 +1,4 @@
-require 'catan/board2'
+require 'catan/board'
 require 'catan/player'
 require 'catan/action'
 require 'catan/development_card'
