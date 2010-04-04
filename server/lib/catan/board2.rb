@@ -59,22 +59,26 @@ module OpenCatan
     end
 
     def find_intersection(id)
-      flatten.detect do |hex|
-        hex.intersections.detect do |intersection|
+      flatten.each do |hex|
+        intersection = hex.intersections.detect do |intersection|
           intersection.id == id
         end
+        return intersection if intersection
       end
+      nil
     end
 
     def find_path(endpoints)
       endpoints = endpoints.split('-') if endpoints.respond_to? :split
-      intersection = flatten.detect do |hex|
-        hex.intersections.detect do |intersection|
-          endpoints.include? intersection.id
+      endpoint = nil
+      flatten.each do |hex|
+        endpoint ||= hex.intersections.detect do |intersection|
+          endpoints.include? intersection.id.to_s
         end
       end
-      intersection.paths.detect do |path|
-        endpoints.include? path.other_side(intersection).id
+      return nil unless endpoint
+      endpoint.paths.detect do |path|
+        endpoints.include? path.other_side(endpoint).id.to_s
       end
     end
 
