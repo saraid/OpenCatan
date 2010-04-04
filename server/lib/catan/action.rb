@@ -1,3 +1,30 @@
+# done
+# roll
+# chat, message
+# 
+# spend, resource_hash # on gold, year-of-plenty, and monopoly cards
+# discard, resource_hash
+# place, robber, hex_coords # on 7s and knight cards
+# 
+# buy, settlement
+# place, settlement, intersection_id
+# buy, road
+# place, road, path_id
+# buy, boat
+# place, boat, path_id
+# buy, city
+# upgrade, intersection_id
+# 
+# buy, card
+# play, card_id
+# 
+# trade
+# propose, offer: resource_hash, demand: resource_hash
+# accept, proposal_id
+# reject, proposal_id
+# block, resource_hash
+# offer_more # because it's funny
+
 module OpenCatan
   class Player
     def act(action)
