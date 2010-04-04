@@ -69,16 +69,16 @@ module OpenCatan
     end
 
     def find_path(endpoints)
-      endpoints = endpoints.split('-') if endpoints.respond_to? :split
+      endpoints = endpoints.split('-').collect do |x| x.to_i end if endpoints.respond_to? :split
       endpoint = nil
       flatten.each do |hex|
         endpoint ||= hex.intersections.detect do |intersection|
-          endpoints.include? intersection.id.to_s
+          endpoints.include? intersection.id
         end
       end
       return nil unless endpoint
       endpoint.paths.detect do |path|
-        endpoints.include? path.other_side(endpoint).id.to_s
+        endpoints.include? path.other_side(endpoint).id
       end
     end
 
