@@ -48,7 +48,7 @@ module OpenCatan
           end
         end
       end
-      flatten.each do |hex|
+      each_hex do |hex|
         hex.connect_intersections!
       end
       self
@@ -59,7 +59,7 @@ module OpenCatan
     end
 
     def find_intersection(id)
-      flatten.each do |hex|
+      each_hex do |hex|
         intersection = hex.intersections.detect do |intersection|
           intersection.id == id
         end
@@ -71,7 +71,7 @@ module OpenCatan
     def find_path(endpoints)
       endpoints = endpoints.split('-').collect do |x| x.to_i end if endpoints.respond_to? :split
       endpoint = nil
-      flatten.each do |hex|
+      each_hex do |hex|
         endpoint ||= hex.intersections.detect do |intersection|
           endpoints.include? intersection.id
         end
@@ -86,6 +86,10 @@ module OpenCatan
       flatten.select do |hex|
         hex.number == number
       end
+    end
+
+    def each_hex(&block)
+      flatten.each(&block)
     end
 
     def valid_location?(location)
