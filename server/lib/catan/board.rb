@@ -255,9 +255,12 @@ module OpenCatan
         @intersections.include? intersection
       end
 
+      # FIXME: This method connects the wrong intersections
       def connect_intersections!
+        log "connecting #{self.inspect}"
         6.times do |index|
           @intersections[index].connect_with @intersections[index-1]
+          log "#{@intersections[index].inspect}-#{@intersections[index-1].inspect}"
         end
       end
 
