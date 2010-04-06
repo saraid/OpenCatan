@@ -132,6 +132,10 @@ module OpenCatan
         @paths << Path.new(intersection, self)
       end
 
+      def distance
+        @hexes.inject(0) do |sum, n| n.distance + sum end
+      end
+
       attr_reader :piece, :hexes, :paths, :id
       def piece=(piece)
         raise OpenCatanException, "Intersection #{@id} in use." if @piece
@@ -206,6 +210,10 @@ module OpenCatan
 
       def set_location(row, offset)
         @location = Location.new(row, offset)
+      end
+
+      def distance
+        @location.row + @location.offset
       end
 
       class Location
