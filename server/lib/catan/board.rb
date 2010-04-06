@@ -120,8 +120,12 @@ module OpenCatan
       def initialize
         @hexes = []
         @paths = []
+        @harbor = nil
         @id = self.object_id
       end
+      attr_reader :piece, :hexes, :paths, :id
+      attr_accessor :harbor
+
       def in_hex(hex, recursing = false)
         return if @hexes.include? hex || hex.nil?
         @hexes << hex
@@ -136,11 +140,11 @@ module OpenCatan
         @hexes.inject(0) do |sum, n| n.distance + sum end
       end
 
-      attr_reader :piece, :hexes, :paths, :id
       def piece=(piece)
         raise OpenCatanException, "Intersection #{@id} in use." if @piece
         raise OpenCatanException, "Intersection near #{@id} in use." if @paths.any? do |path| path.has_piece_on_other_side_of(self) end
         @piece = piece
+        @piece.owner.controls_harbor_for[@harbor.type] = true if @harbor
       end
 
       def to_s
@@ -179,6 +183,21 @@ module OpenCatan
 
       def inspect
         "[#{@intersections.collect {|x|x.inspect}.join('-')}]"
+      end
+    end
+
+    class Harbor
+      def initialize(path, type = :general)
+        @intersections = path.intersections
+        @type = type
+      end
+
+      def to_s
+        "{#{@intersections.join('-')}}"
+      end
+
+      def inspect
+        "{#{@intersections.collect {|x|x.inspect}.join('-')}}"
       end
     end
 

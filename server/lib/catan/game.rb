@@ -1,3 +1,4 @@
+require 'catan/catan'
 require 'catan/board'
 require 'catan/player'
 require 'catan/action'
