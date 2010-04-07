@@ -45,10 +45,12 @@ module OpenCatan
             pair.compact!
             pair << hex
             pair.each do |this_hex| intersection.in_hex(this_hex) end
+            pair.each do |this_hex| this_hex.remove_duplicates! end
           end
         end
       end
       each_hex do |hex|
+        hex.sort_intersections!(self)
         hex.connect_intersections!
       end
       self
@@ -126,8 +128,22 @@ module OpenCatan
       attr_reader :piece, :hexes, :paths, :id
       attr_accessor :harbor
 
+      def ==(obj)
+        @hexes.length == obj.hexes.length \
+        && @hexes.all? do |hex| obj.hexes.include? hex end
+      end
+
+      def eql?(obj)
+        self == obj
+      end
+
+      def hash
+        return super if @hexes.length == 1
+        @hexes.inject(0) do |sum, n| sum + n.hash end
+      end
+
       def in_hex(hex, recursing = false)
-        return if @hexes.include? hex || hex.nil?
+        return if @hexes.include?(hex) || hex.nil?
         @hexes << hex
         hex.place_intersection(self, true) unless recursing
       end
@@ -255,11 +271,11 @@ module OpenCatan
       def neighbor_pairs
         hack = (@location.row % 2).zero? ? 0 : 1
         pairs = []
-        pairs << [Location.relative(@location, -2, 0), Location.relative(@location, -1, 0 + hack)]
+        pairs << [Location.relative(@location, -1, -1 + hack), Location.relative(@location, -2, 0)]
+        pairs << [pairs.last.last, Location.relative(@location, -1, 0 + hack)]
         pairs << [pairs.last.last, Location.relative(@location,  1,  0 + hack)]
         pairs << [pairs.last.last, Location.relative(@location,  2,  0)]
         pairs << [pairs.last.last, Location.relative(@location,  1, -1 + hack)]
-        pairs << [pairs.last.last, Location.relative(@location, -1, -1 + hack)]
         pairs << [pairs.last.last, pairs.first.first]
         pairs
       end
@@ -270,16 +286,36 @@ module OpenCatan
         intersection.in_hex(self, true) unless recursing
       end
 
+      def remove_duplicates!
+        @intersections.uniq!
+      end
+
       def has_intersection?(intersection)
         @intersections.include? intersection
       end
 
-      # FIXME: This method connects the wrong intersections
+      def sort_intersections!(board)
+        outliers = @intersections.select do |intersection| intersection.hexes.length == 1 end
+        intersections = []
+        neighbor_pairs.each do |pair|
+          intersections << if pair.any? { |location| board.valid_location?(location) }
+              @intersections.detect do |intersection|
+                pair.collect! do |location| location.respond_to?(:row) ? board.find_by_location(location) : location end
+                pair.compact!
+                pair.length+1 == intersection.hexes.length && pair.all? do |hex|
+                  intersection.hexes.include? hex
+                end
+              end
+            else
+              outliers.shift
+            end
+        end
+        @intersections = intersections
+      end
+
       def connect_intersections!
-        log "connecting #{self.inspect}"
         6.times do |index|
           @intersections[index].connect_with @intersections[index-1]
-          log "#{@intersections[index].inspect}-#{@intersections[index-1].inspect}"
         end
       end
 
