@@ -247,6 +247,10 @@ module OpenCatan
         @robber
       end
 
+      def rob!
+        @robber = true
+      end
+
       def set_location(row, offset)
         @location = Location.new(row, offset)
       end
