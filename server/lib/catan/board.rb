@@ -128,6 +128,10 @@ module OpenCatan
       attr_reader :piece, :hexes, :paths, :id
       attr_accessor :harbor
 
+      # There are some cases where this does not denote actual equivalence.
+      # In cases of "outliers", or intersections occupying only one hex,
+      # there are no characteristics to differentiate one intersection from
+      # another.
       def ==(obj)
         @hexes.length == obj.hexes.length \
         && @hexes.all? do |hex| obj.hexes.include? hex end
