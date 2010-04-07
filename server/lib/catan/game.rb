@@ -6,7 +6,6 @@ require 'catan/development_card'
 require 'catan/dice'
 
 module OpenCatan
-  class OpenCatanException < StandardError; end
 
   class Game
     def initialize
