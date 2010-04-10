@@ -53,6 +53,12 @@ module OpenCatan
       turn = case action
       when 'roll'
         current_turn.roll_dice
+      when 'buy settlement'
+        current_turn.buy_settlement
+      when 'buy road'
+        current_turn.buy_road
+      when 'buy boat'
+        current_turn.buy_boat
       when 'done'
         current_turn.done
       end

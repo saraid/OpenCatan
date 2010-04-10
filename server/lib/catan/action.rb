@@ -34,6 +34,8 @@ module OpenCatan
 
     class Action
       attr_accessor :actor
+      def do; @done = true; end
+      def undo; raise OpenCatanException, "Cannot undo what has not been done" unless @done; end
 
       class Done < Action
       end
@@ -46,6 +48,45 @@ module OpenCatan
           roll = @actor.game.dice.roll(2)
           log "#{@actor.name} rolled #{roll}"
           roll
+        end
+      end
+
+      class BuyAction < Action
+        def do
+          @resource_hash.each_pair do |resource, cost|
+            raise OpenCatanException, "Insufficient #{resource}" if @actor.resources[resource] < cost
+            @actor.resources[resource] -= cost
+          end
+          super
+        end
+        def undo
+          super
+          @resource_hash.each_pair do |resource, cost|
+            @actor.resources[resource] += cost
+          end
+        end
+      end
+      class BuySettlement < BuyAction
+        def initialize
+          @resource_hash = { :wood => 1,
+                             :wheat => 1,
+                             :clay => 1,
+                             :sheep => 1
+                           }
+        end
+      end
+      class BuyRoad < BuyAction
+        def initialize
+          @resource_hash = { :wood => 1,
+                             :clay => 1,
+                           }
+        end
+      end
+      class BuyBoat < BuyAction
+        def initialize
+          @resource_hash = { :wood => 1,
+                             :sheep => 1
+                           }
         end
       end
 

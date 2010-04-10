@@ -82,6 +82,23 @@ module OpenCatan
         return self
       end
 
+      # Buy Actions
+      def buy_settlement
+        @player.act(Player::Action::BuySettlement.new)
+        super
+        return self
+      end
+      def buy_road
+        @player.act(Player::Action::BuyRoad.new)
+        super
+        return self
+      end
+      def buy_boat
+        @player.act(Player::Action::BuyBoat.new)
+        super
+        return self
+      end
+
       private
       def roll
         @roll = @player.act(Player::Action::Roll.new)
