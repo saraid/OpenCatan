@@ -12,7 +12,23 @@ module OpenCatan
         @player = player
         @game = game
         @actions = []
+        @turn_state = TurnState.new
         super()
+      end
+      attr_reader :turn_state
+
+      class TurnState
+        def initialize
+          @status = 'ok'
+        end
+
+        def inspect
+          { :status => @status }.inspect
+        end
+        def to_s; inspect; end
+
+        def to_json
+        end
       end
 
       state_machine :dice_state, :namespace => 'dice', :action => :roll, :initial => :rolling do 
@@ -52,11 +68,19 @@ module OpenCatan
         end
       end
 
+      # Done Action
       def done
         @done = true
         @game.advance_player
+        return self
       end
       def done?; @done; end
+
+      # Roll Action
+      def roll_dice
+        super
+        return self
+      end
 
       private
       def roll

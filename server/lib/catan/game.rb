@@ -48,14 +48,15 @@ module OpenCatan
       @player_pointer = @players.length - 1 if @player_pointer == -1
     end
 
-    def submit_player_command(action, parameters = [])
+    def submit_player_command(action, parameters = {})
       log action
-      case action
+      turn = case action
       when 'roll'
         current_turn.roll_dice
       when 'done'
         current_turn.done
       end
+      turn.turn_state
     end
 
     def self.test
