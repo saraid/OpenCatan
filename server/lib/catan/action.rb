@@ -89,6 +89,21 @@ module OpenCatan
                            }
         end
       end
+      class BuyCity < BuyAction
+        def initialize
+          @resource_hash = { :wheat => 2,
+                             :ore => 3
+                           }
+        end
+      end
+      class BuyCard < BuyAction
+        def initialize
+          @resource_hash = { :wheat => 1,
+                             :sheep => 1,
+                             :ore => 1
+                           }
+        end
+      end
 
       class PlaceAction < Action
         def self.on(location)

@@ -84,18 +84,23 @@ module OpenCatan
 
       # Buy Actions
       def buy_settlement
-        @player.act(Player::Action::BuySettlement.new)
-        super
+        @player.act(Player::Action::BuySettlement.new) if super
         return self
       end
       def buy_road
-        @player.act(Player::Action::BuyRoad.new)
-        super
+        @player.act(Player::Action::BuyRoad.new) if super
         return self
       end
       def buy_boat
-        @player.act(Player::Action::BuyBoat.new)
-        super
+        @player.act(Player::Action::BuyBoat.new) if super
+        return self
+      end
+      def buy_city
+        @player.act(Player::Action::BuyCity.new) if super
+        return self
+      end
+      def buy_card
+        @player.act(Player::Action::BuyCard.new) if super
         return self
       end
 
