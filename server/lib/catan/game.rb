@@ -59,6 +59,10 @@ module OpenCatan
         current_turn.buy_road
       when 'buy boat'
         current_turn.buy_boat
+      when 'buy city'
+        current_turn.buy_city
+      when 'buy card'
+        current_turn.buy_card
       when 'done'
         current_turn.done
       end

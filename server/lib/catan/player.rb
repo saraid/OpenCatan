@@ -43,6 +43,10 @@ module OpenCatan
       @pieces_remaining[type].shift
     end
 
+    def receive_piece(type, piece)
+      @pieces_remaining[type] << piece
+    end
+
     def receive(resource)
       return if resource.nil?
       resource = @resources.keys.rand if resource == :gold # Hack it for now

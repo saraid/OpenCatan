@@ -105,6 +105,20 @@ module OpenCatan
         end
       end
 
+      class UpgradeSettlement < Action
+        def self.on(intersection)
+          raise OpenCatanException, "No settlement found" unless intersection.piece.is_a? Piece::Settlement
+          action = self.new
+          action.intersection = intersection
+          action
+        end
+        attr_accessor :intersection
+        def do
+          @actor.receive_piece(:settlement, @intersection.piece)
+          @intersection.piece = @actor.play_piece(:city)
+        end
+      end
+
       class PlaceAction < Action
         def self.on(location)
           action = self.new

@@ -104,6 +104,24 @@ module OpenCatan
         return self
       end
 
+      # Place Actions
+      def place_settlement(intersection)
+        @player.act(Player::Action::PlaceSettlement.on(intersection)) if place_piece
+        return self
+      end
+      def place_road(path)
+        @player.act(Player::Action::PlaceRoad.on(path)) if place_piece
+        return self
+      end
+      def place_boat(path)
+        @player.act(Player::Action::PlaceBoat.on(path)) if place_piece
+        return self
+      end
+      def upgrade(intersection)
+        @player.act(Player::Action::UpgradeSettlement.on(intersection)) if place_piece
+        return self
+      end
+
       private
       def roll
         @roll = @player.act(Player::Action::Roll.new)
