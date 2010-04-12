@@ -24,6 +24,11 @@ module OpenCatan
       player.join_game(self)
     end
 
+    def log_action(action)
+      @actions ||= []
+      @actions << action
+    end
+
     def start_game
       @turns = []
       @turns << Player::Turn.new(current_player, self)
@@ -103,6 +108,8 @@ module OpenCatan
 
       game.dice.remember
       game.start_game
+
+      log @players.collect do |player| player.resources end
 
       10.times do |i|
         game.submit_player_command "roll"

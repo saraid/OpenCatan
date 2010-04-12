@@ -34,7 +34,7 @@ module OpenCatan
 
     class Action
       attr_accessor :actor
-      def do; @done = true; end
+      def do; @actor.game.log_action(self); @done = true; end
       def undo; raise OpenCatanException, "Cannot undo what has not been done" unless @done; end
 
       class Done < Action
@@ -47,7 +47,8 @@ module OpenCatan
         def do
           roll = @actor.game.dice.roll(2)
           log "#{@actor.name} rolled #{roll}"
-          roll
+          super
+          return roll
         end
       end
 
@@ -116,6 +117,7 @@ module OpenCatan
         def do
           @actor.receive_piece(:settlement, @intersection.piece)
           @intersection.piece = @actor.play_piece(:city)
+          super
         end
       end
 
@@ -129,6 +131,7 @@ module OpenCatan
         def do
           @location.piece = @actor.play_piece(@piece_type)
           log "#{@actor.name} placed a #{@piece_type} on #{@location}"
+          super
         end
       end
       class PlaceSettlement < PlaceAction
