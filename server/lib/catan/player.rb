@@ -59,6 +59,10 @@ module OpenCatan
       @gold = 0
     end
 
+    def draw_card
+      @development_cards << @game.deck.draw
+    end
+
     attr_reader :game
     def join_game(game)
       @game = game
@@ -78,6 +82,7 @@ module OpenCatan
         @game.current_turn.spend_gold(self, parameters.shift)
       when 'done'
         @game.current_turn.done
+        @development_cards.each do |card| card.set_playable! end
       end
       @game.current_turn.turn_state
     end

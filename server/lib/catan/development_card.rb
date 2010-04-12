@@ -2,14 +2,23 @@ module OpenCatan
   class Deck
 
     class DevelopmentCard
+    @@counter = OpenCatan::Sequence.new
       AMOUNT_IN_DECK = 0
       def initialize
-        @id = self.object_id # Just need a unique identifier.
+        @id = @@counter.next #self.object_id # Just need a unique identifier.
+        @just_received = true
       end
       attr_reader :id
 
       def type
         self.class.to_s.split('::').last
+      end
+
+      def set_playable!
+        @just_received = false
+      end
+      def playable?
+        !@just_received
       end
     end
 
@@ -62,7 +71,7 @@ module OpenCatan
   class RiggedDeck < Deck
     def initialize
       super
-      [].each do |type|
+      ["YearOfPlenty"].each do |type|
         unshift(@contents.detect do |card| card.type == type end)
       end
     end

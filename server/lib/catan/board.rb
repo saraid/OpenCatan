@@ -1,12 +1,4 @@
 module OpenCatan
-  class Sequence
-    def next
-      @counter ||= 0
-      @counter = @counter.succ
-      @counter
-    end
-  end
-
   class Board < Array
 
     class LoadError < Exception; end

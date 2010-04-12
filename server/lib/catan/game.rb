@@ -47,6 +47,11 @@ module OpenCatan
       @turns.last
     end
 
+    def status
+      log(current_turn.turn_state.inspect)
+      log(players.collect do |player| "#{player.name}: #{player.resources.inspect}" end)
+    end
+
     def advance_player
       @player_pointer = @player_pointer.succ
       @player_pointer = 0 if @player_pointer == @players.length
@@ -64,7 +69,7 @@ module OpenCatan
       game.rig!
       np = 4
       colors = ['red', 'orange', 'blue', 'white']
-      np.times do |x| game.add_player(Player.new(Random.firstname, colors[x])) end
+      np.times do |x| game.add_player(Player.new("Player #{x}", colors[x])) end
 
       rolls = game.players.collect do |player| player.act(Player::Action::Roll.new) end
       game.player_pointer = rolls.index rolls.max
@@ -72,7 +77,7 @@ module OpenCatan
       log "#{game.players[game.player_pointer].name} goes first!"
 
       board = game.board
-      rows    = [4, 1, 1, 3, 8, 4, 2, 7]
+      rows    = [4, 1, 1, 3, 8, 2, 4, 7]
       offsets = [1, 3, 1, 2, 3, 2, 2, 3]
 
       np.times do |i|
@@ -94,24 +99,31 @@ module OpenCatan
       game.dice.remember
       game.start_game
 
-      player_status(game)
+      game.status
 
       game.current_player.submit_command "roll"
       game.current_player.submit_command "buy", "road"
       game.current_player.submit_command "place", "road", "75-105"
       game.current_player.submit_command "done"
 
-      player_status(game)
+      game.status
 
       game.current_player.submit_command "roll"
+      game.current_player.submit_command "buy", "card"
+      game.current_player.submit_command "done"
+
+      game.status
+
+      game.current_player.submit_command "roll"
+      game.status
       game.players[0].submit_command "spend", "{\"wheat\":1}"
       game.current_player.submit_command "done"
 
-      player_status(game)
+      game.status
+
 
       game
     end
-    def self.player_status(game); log(game.players.collect do |player| player.resources.inspect end); end
   end
 end
 

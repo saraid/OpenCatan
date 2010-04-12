@@ -22,8 +22,23 @@ module OpenCatan
           @status = 'ok'
         end
 
+        def roll_result(player, resource)
+          @roll_results ||= {}
+          @roll_results[player.name] ||= {}
+          @roll_results[player.name][resource] ||= 0
+          @roll_results[player.name][resource] = @roll_results[player.name][resource].succ
+          gold_holders = @roll_results.select { |name, player| player[:gold] }.collect do |x| x.first end
+          @status = "Waiting for #{gold_holders.join(', ')}" unless gold_holders.empty?
+        end
+
         def inspect
-          { :status => @status }.inspect
+          roll_results = []
+          @roll_results.each_pair do |name, player|
+            roll_results << "#{name} collected #{player.collect { |resource, amount| "#{amount} #{resource}" }.join(', ')}"
+          end if @roll_results
+          { :status => @status,
+            :roll_results => roll_results
+          }.inspect
         end
         def to_s; inspect; end
 
@@ -76,50 +91,35 @@ module OpenCatan
       end
       def done?; @done; end
 
-      # Roll Action
-      def roll_dice
-        super
-        return self
-      end
-
       # Buy Actions
       def buy_settlement
         @player.act(Player::Action::BuySettlement.new) if super
-        return self
       end
       def buy_road
         @player.act(Player::Action::BuyRoad.new) if super
-        return self
       end
       def buy_boat
         @player.act(Player::Action::BuyBoat.new) if super
-        return self
       end
       def buy_city
         @player.act(Player::Action::BuyCity.new) if super
-        return self
       end
       def buy_card
         @player.act(Player::Action::BuyCard.new) if super
-        return self
       end
 
       # Place Actions
       def place_settlement(intersection)
         @player.act(Player::Action::PlaceSettlement.on(@game.board.find_intersection(intersection))) if place_piece
-        return self
       end
       def place_road(path)
         @player.act(Player::Action::PlaceRoad.on(@game.board.find_path(path))) if place_piece
-        return self
       end
       def place_boat(path)
         @player.act(Player::Action::PlaceBoat.on(@game.board.find_path(path))) if place_piece
-        return self
       end
       def upgrade(intersection)
         @player.act(Player::Action::UpgradeSettlement.on(@game.board.find_intersection(intersection))) if place_piece
-        return self
       end
 
       # Spend Action
@@ -144,6 +144,7 @@ module OpenCatan
           hex.intersections.each do |intersection|
             if intersection.piece
               intersection.piece.owner.receive hex.product
+              turn_state.roll_result(intersection.piece.owner, hex.product)
             end
           end
         end

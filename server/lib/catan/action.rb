@@ -104,6 +104,10 @@ module OpenCatan
                              :ore => 1
                            }
         end
+        def do
+          super
+          @actor.draw_card
+        end
       end
 
       class UpgradeSettlement < Action
