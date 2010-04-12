@@ -58,27 +58,6 @@ module OpenCatan
       @player_pointer = @players.length - 1 if @player_pointer == -1
     end
 
-    def submit_player_command(action, parameters = {})
-      log action
-      turn = case action
-      when 'roll'
-        current_turn.roll_dice
-      when 'buy settlement'
-        current_turn.buy_settlement
-      when 'buy road'
-        current_turn.buy_road
-      when 'buy boat'
-        current_turn.buy_boat
-      when 'buy city'
-        current_turn.buy_city
-      when 'buy card'
-        current_turn.buy_card
-      when 'done'
-        current_turn.done
-      end
-      turn.turn_state
-    end
-
     def self.test
       require 'random_data'
       game = Game.new
@@ -115,15 +94,24 @@ module OpenCatan
       game.dice.remember
       game.start_game
 
-      log(game.players.collect do |player| player.resources end)
+      player_status(game)
 
-      10.times do |i|
-        game.submit_player_command "roll"
-        game.submit_player_command "done"
-      end
+      game.current_player.submit_command "roll"
+      game.current_player.submit_command "buy", "road"
+      game.current_player.submit_command "place", "road", "75-105"
+      game.current_player.submit_command "done"
+
+      player_status(game)
+
+      game.current_player.submit_command "roll"
+      game.players[0].submit_command "spend", "{\"wheat\":1}"
+      game.current_player.submit_command "done"
+
+      player_status(game)
 
       game
     end
+    def self.player_status(game); log(game.players.collect do |player| player.resources.inspect end); end
   end
 end
 

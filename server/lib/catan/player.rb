@@ -12,6 +12,7 @@ module OpenCatan
 
       @resources = Catan::RESOURCES.clone
       @development_cards = []
+      @gold = 0
 
       @knights_played = 0
       @longest_road   = 0
@@ -49,14 +50,36 @@ module OpenCatan
 
     def receive(resource)
       return if resource.nil?
-      resource = @resources.keys.rand if resource == :gold # Hack it for now
-      @resources[resource] = @resources[resource].succ
       log "#{name} receives 1 #{resource}"
+      @gold = @gold.succ and return if resource == :gold
+      @resources[resource] = @resources[resource].succ
+    end
+
+    def gold_spent!
+      @gold = 0
     end
 
     attr_reader :game
     def join_game(game)
       @game = game
+    end
+
+    def submit_command(*parameters)
+      log " [Action] #{self.name}: #{parameters.join(", ")}"
+      action = parameters.shift
+      case action
+      when 'roll'
+        @game.current_turn.roll_dice
+      when 'buy'
+        @game.current_turn.send(:"buy_#{parameters.shift}")
+      when 'place'
+        @game.current_turn.send(:"place_#{parameters.shift}", parameters.shift)
+      when 'spend'
+        @game.current_turn.spend_gold(self, parameters.shift)
+      when 'done'
+        @game.current_turn.done
+      end
+      @game.current_turn.turn_state
     end
 
   end

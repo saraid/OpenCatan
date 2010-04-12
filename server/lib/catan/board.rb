@@ -1,4 +1,12 @@
 module OpenCatan
+  class Sequence
+    def next
+      @counter ||= 0
+      @counter = @counter.succ
+      @counter
+    end
+  end
+
   class Board < Array
 
     class LoadError < Exception; end
@@ -128,11 +136,13 @@ module OpenCatan
     end
 
     class Intersection
+      @@counter = Sequence.new
       def initialize
         @hexes = []
         @paths = []
         @trade_hub = nil
-        @id = self.object_id
+        #@id = self.object_id
+        @id = @@counter.next
       end
       attr_reader :piece, :hexes, :paths, :id
       attr_accessor :trade_hub

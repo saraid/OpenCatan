@@ -19,7 +19,7 @@ module OpenCatan
   class LoadedDice < Dice
     def initialize
       super
-      @rolls = []
+      @rolls = [5, 4, 3, 2, 9, 5]
     end
     def roll(number = 1, sides = 6)
       return super if @rolls.empty?

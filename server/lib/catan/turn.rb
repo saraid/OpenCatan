@@ -106,20 +106,29 @@ module OpenCatan
 
       # Place Actions
       def place_settlement(intersection)
-        @player.act(Player::Action::PlaceSettlement.on(intersection)) if place_piece
+        @player.act(Player::Action::PlaceSettlement.on(@game.board.find_intersection(intersection))) if place_piece
         return self
       end
       def place_road(path)
-        @player.act(Player::Action::PlaceRoad.on(path)) if place_piece
+        @player.act(Player::Action::PlaceRoad.on(@game.board.find_path(path))) if place_piece
         return self
       end
       def place_boat(path)
-        @player.act(Player::Action::PlaceBoat.on(path)) if place_piece
+        @player.act(Player::Action::PlaceBoat.on(@game.board.find_path(path))) if place_piece
         return self
       end
       def upgrade(intersection)
-        @player.act(Player::Action::UpgradeSettlement.on(intersection)) if place_piece
+        @player.act(Player::Action::UpgradeSettlement.on(@game.board.find_intersection(intersection))) if place_piece
         return self
+      end
+
+      # Spend Action
+      def spend_gold(player, resource_hash)
+        resources = JSON.parse(resource_hash)
+        resources.each_pair do |resource, amount|
+          amount.times do |x| player.receive(resource.to_sym) end
+        end
+        player.gold_spent!
       end
 
       private
