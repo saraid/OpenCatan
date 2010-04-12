@@ -51,10 +51,9 @@ module OpenCatan
             :roll_results => roll_results
           }
         end
-        def inspect; summary.inspect; end
         def to_s; inspect; end
-
         def to_json; summary.to_json; end
+        def inspect; summary.inspect; end
       end
 
       state_machine :dice_state, :namespace => 'dice', :initial => :rolling do 
