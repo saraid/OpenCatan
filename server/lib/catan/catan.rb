@@ -1,3 +1,4 @@
+require 'active_support'
 require 'ext/array'
 
 module OpenCatan

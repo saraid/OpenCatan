@@ -24,29 +24,40 @@ module OpenCatan
 
         def roll_result(player, resource)
           @roll_results ||= {}
-          @roll_results[player.name] ||= {}
-          @roll_results[player.name][resource] ||= 0
-          @roll_results[player.name][resource] = @roll_results[player.name][resource].succ
-          gold_holders = @roll_results.select { |name, player| player[:gold] }.collect do |x| x.first end
-          @status = "Waiting for #{gold_holders.join(', ')}" unless gold_holders.empty?
+          @roll_results[player] ||= {}
+          @roll_results[player][resource] ||= 0
+          @roll_results[player][resource] = @roll_results[player][resource].succ
+          @gold_holders = @roll_results.select { |player, resources| resources[:gold] }.collect do |x| x.first end
+          update_status
         end
 
-        def inspect
+        def gold_spent(player)
+          @gold_holders.delete(player)
+          update_status
+        end
+
+        def update_status
+          @status = "Waiting for #{@gold_holders.collect { |player| player.name }.join(', ')} to spend gold." and return unless @gold_holders.empty?
+          @status = 'ok'
+        end
+        private :update_status
+
+        def summary
           roll_results = []
-          @roll_results.each_pair do |name, player|
-            roll_results << "#{name} collected #{player.collect { |resource, amount| "#{amount} #{resource}" }.join(', ')}"
+          @roll_results.each_pair do |player, resources|
+            roll_results << "#{player.name} collected #{resources.collect { |resource, amount| "#{amount} #{resource}" }.join(', ')}"
           end if @roll_results
           { :status => @status,
             :roll_results => roll_results
-          }.inspect
+          }
         end
+        def inspect; summary.inspect; end
         def to_s; inspect; end
 
-        def to_json
-        end
+        def to_json; summary.to_json; end
       end
 
-      state_machine :dice_state, :namespace => 'dice', :action => :roll, :initial => :rolling do 
+      state_machine :dice_state, :namespace => 'dice', :initial => :rolling do 
         event :roll do
           transition :rolling => :rolled
         end
@@ -73,10 +84,10 @@ module OpenCatan
 
       state_machine :purchase_state, :initial => :nothing do
         event :buy_card do
-          transition :nothing => same
+          transition :nothing => same, :if => :dice_rolled?
         end
         event :buy_settlement, :buy_road, :buy_boat do
-          transition :nothing => :placing_piece
+          transition :nothing => :placing_piece, :if => :dice_rolled?
         end
         event :place_piece do
           transition :placing_piece => :nothing
@@ -86,6 +97,7 @@ module OpenCatan
       # Done Action
       def done
         @done = true
+        @game.status
         @game.advance_player
         return self
       end
@@ -129,10 +141,11 @@ module OpenCatan
           amount.times do |x| player.receive(resource.to_sym) end
         end
         player.gold_spent!
+        turn_state.gold_spent(player)
       end
 
-      private
-      def roll
+      def roll_dice
+        super
         @roll = @player.act(Player::Action::Roll.new)
         rolled_a_seven and return if @roll == 7
         log "Hexes with #{@roll}: #{game.board.find_hexes_by_number(@roll).join(',')}"

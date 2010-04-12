@@ -11,7 +11,7 @@ module OpenCatan
     def initialize
       @deck = Deck.new
       @dice = Dice.new
-      @board = Board.deserialize_from_yaml("lib/catan/sample/meh5x9_num.yml")
+      @board = Board.deserialize_from_yaml("catan/sample/meh5x9_num.yml")
       @players = []
       @player_pointer = nil
     end
@@ -106,21 +106,14 @@ module OpenCatan
       game.current_player.submit_command "place", "road", "75-105"
       game.current_player.submit_command "done"
 
-      game.status
-
       game.current_player.submit_command "roll"
       game.current_player.submit_command "buy", "card"
       game.current_player.submit_command "done"
-
-      game.status
 
       game.current_player.submit_command "roll"
       game.status
       game.players[0].submit_command "spend", "{\"wheat\":1}"
       game.current_player.submit_command "done"
-
-      game.status
-
 
       game
     end

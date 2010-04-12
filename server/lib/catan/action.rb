@@ -18,7 +18,6 @@
 # buy, card
 # play, card_id
 # 
-# trade
 # propose, offer: resource_hash, demand: resource_hash
 # accept, proposal_id
 # reject, proposal_id
