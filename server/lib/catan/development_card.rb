@@ -7,6 +7,10 @@ module OpenCatan
         @id = self.object_id # Just need a unique identifier.
       end
       attr_reader :id
+
+      def type
+        self.class.to_s.split('::').last
+      end
     end
 
     class ProgressCard < DevelopmentCard
@@ -52,6 +56,15 @@ module OpenCatan
 
     def method_missing(id, *args, &block)
       @contents.send(id, *args, &block)
+    end
+  end
+
+  class RiggedDeck < Deck
+    def initialize
+      super
+      [].each do |type|
+        unshift(@contents.detect do |card| card.type == type end)
+      end
     end
   end
 end

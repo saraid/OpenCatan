@@ -18,6 +18,11 @@ module OpenCatan
     attr_reader :dice, :deck, :board
     attr_accessor :player_pointer
 
+    def rig!
+      @dice = LoadedDice.new
+      @deck = RiggedDeck.new
+    end
+
     attr_reader :players
     def add_player(player)
       @players << player
@@ -77,6 +82,7 @@ module OpenCatan
     def self.test
       require 'random_data'
       game = Game.new
+      game.rig!
       np = 4
       colors = ['red', 'orange', 'blue', 'white']
       np.times do |x| game.add_player(Player.new(Random.firstname, colors[x])) end
@@ -109,7 +115,7 @@ module OpenCatan
       game.dice.remember
       game.start_game
 
-      log @players.collect do |player| player.resources end
+      log(game.players.collect do |player| player.resources end)
 
       10.times do |i|
         game.submit_player_command "roll"

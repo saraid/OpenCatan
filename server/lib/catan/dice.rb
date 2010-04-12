@@ -15,4 +15,15 @@ module OpenCatan
       @history.send(action).inject(0) { |sum,n| sum + n }
     end
   end
+
+  class LoadedDice < Dice
+    def initialize
+      super
+      @rolls = []
+    end
+    def roll(number = 1, sides = 6)
+      return super if @rolls.empty?
+      @rolls.shift
+    end
+  end
 end
