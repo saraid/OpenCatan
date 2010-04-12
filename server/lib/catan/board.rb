@@ -20,13 +20,22 @@ module OpenCatan
       map.each_with_index do |raw_row, index|
         row = Row.new
         raw_row.each_with_index do |hex, offset|
-          row << "OpenCatan::Board::Hex::#{hex}".constantize.new
+          row << "OpenCatan::Board::Hex::#{hex[:type]}".constantize.new
           row[offset].set_location(index, offset)
+          row[offset].set_number(hex[:number])
         end
         board << Row.new(row)
       end
       board.build_intersections_and_paths
     end
+    def serialize_to_yaml(file)
+      serialized_board = collect do |row|
+        row.collect do |hex|
+          hex.serialize_to_yaml
+        end
+      end
+    end
+
     attr_accessor :longest_row
 
     def build_intersections_and_paths
@@ -239,6 +248,10 @@ module OpenCatan
       end
       attr_reader :location, :intersections, :number
 
+      def serialize_to_yaml
+        { :type => type, :number => number }
+      end
+
       def type
         self.class.to_s.split('::').last
       end
@@ -253,6 +266,10 @@ module OpenCatan
 
       def set_location(row, offset)
         @location = Location.new(row, offset)
+      end
+
+      def set_number(number)
+        @number = number
       end
 
       def distance

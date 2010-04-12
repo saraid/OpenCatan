@@ -11,7 +11,7 @@ module OpenCatan
     def initialize
       @deck = Deck.new
       @dice = Dice.new
-      @board = Board.deserialize_from_yaml("lib/catan/sample/meh5x9.yml")
+      @board = Board.deserialize_from_yaml("lib/catan/sample/meh5x9_num.yml")
       @players = []
       @player_pointer = nil
     end
@@ -73,7 +73,8 @@ module OpenCatan
       require 'random_data'
       game = Game.new
       np = 4
-      np.times do |x| game.add_player(Player.new(Random.firstname, Random.color)) end
+      colors = ['red', 'orange', 'blue', 'white']
+      np.times do |x| game.add_player(Player.new(Random.firstname, colors[x])) end
 
       rolls = game.players.collect do |player| player.act(Player::Action::Roll.new) end
       game.player_pointer = rolls.index rolls.max
@@ -81,13 +82,13 @@ module OpenCatan
       log "#{game.players[game.player_pointer].name} goes first!"
 
       board = game.board
-      rows    = [4, 1, 1, 3, 2, 4, 7, 8, 2, 4]
-      offsets = [1, 3, 1, 1, 2, 2, 3, 3, 4, 4]
+      rows    = [4, 1, 1, 3, 8, 4, 2, 7]
+      offsets = [1, 3, 1, 2, 3, 2, 2, 3]
 
       np.times do |i|
         intersection = board[rows[i]][offsets[i]].intersections.first
         game.current_player.act(Player::Action::PlaceSettlement.on(intersection))
-        game.current_player.act(Player::Action::PlaceRoad.on(intersection.paths.rand))
+        game.current_player.act(Player::Action::PlaceRoad.on(intersection.paths.first))
         game.advance_player
       end
       np.times do |i|
@@ -97,7 +98,7 @@ module OpenCatan
         intersection.hexes.each do |hex|
           game.current_player.receive hex.product
         end
-        game.current_player.act(Player::Action::PlaceRoad.on(intersection.paths.rand))
+        game.current_player.act(Player::Action::PlaceRoad.on(intersection.paths.first))
       end
 
       game.dice.remember

@@ -1,0 +1,83 @@
+--- 
+- - :type: Plain
+    :number: 6
+  - :type: Field
+    :number: 8
+  - :type: Water
+    :number: 
+  - :type: Forest
+    :number: 11
+  - :type: Field
+    :number: 4
+- - :type: Mountain
+    :number: 6
+  - :type: Plain
+    :number: 2
+  - :type: Mountain
+    :number: 6
+  - :type: Field
+    :number: 9
+- - :type: Mine
+    :number: 11
+  - :type: Water
+    :number: 
+  - :type: Hill
+    :number: 3
+  - :type: Field
+    :number: 9
+  - :type: Desert
+    :number: 
+- - :type: Mine
+    :number: 5
+  - :type: Mountain
+    :number: 6
+  - :type: Desert
+    :number: 
+  - :type: Water
+    :number: 
+- - :type: Plain
+    :number: 3
+  - :type: Forest
+    :number: 10
+  - :type: Plain
+    :number: 5
+  - :type: Forest
+    :number: 8
+  - :type: Mine
+    :number: 10
+- - :type: Field
+    :number: 8
+  - :type: Forest
+    :number: 10
+  - :type: Mountain
+    :number: 4
+  - :type: Forest
+    :number: 9
+- - :type: Mine
+    :number: 4
+  - :type: Plain
+    :number: 3
+  - :type: Plain
+    :number: 3
+  - :type: Plain
+    :number: 10
+  - :type: Forest
+    :number: 8
+- - :type: Mine
+    :number: 11
+  - :type: Field
+    :number: 8
+  - :type: Hill
+    :number: 4
+  - :type: Hill
+    :number: 5
+- - :type: Mountain
+    :number: 9
+  - :type: Mine
+    :number: 4
+  - :type: Desert
+    :number: 
+  - :type: Mine
+    :number: 8
+  - :type: Field
+    :number: 4
