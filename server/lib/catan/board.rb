@@ -122,11 +122,11 @@ module OpenCatan
       def initialize
         @hexes = []
         @paths = []
-        @harbor = nil
+        @trade_hub = nil
         @id = self.object_id
       end
       attr_reader :piece, :hexes, :paths, :id
-      attr_accessor :harbor
+      attr_accessor :trade_hub
 
       # There are some cases where this does not denote actual equivalence.
       # In cases of "outliers", or intersections occupying only one hex,
@@ -164,7 +164,7 @@ module OpenCatan
         raise OpenCatanException, "Intersection #{@id} in use." if @piece
         raise OpenCatanException, "Intersection near #{@id} in use." if @paths.any? do |path| path.has_piece_on_other_side_of(self) end
         @piece = piece
-        @piece.owner.controls_harbor_for[@harbor.type] = true if @harbor
+        @piece.owner.controls_trade_hub_for[@trade_hub.type] = true if @trade_hub
       end
 
       def to_s

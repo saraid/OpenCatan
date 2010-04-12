@@ -5,7 +5,7 @@ require 'catan/turn'
 module OpenCatan
   class Player
 
-    attr_reader :name, :color, :controls_harbor_for, :resources
+    attr_reader :name, :color, :controls_trade_hub_for, :resources
     def initialize(name, color)
       @name = name
       @color = color
@@ -16,11 +16,11 @@ module OpenCatan
       @knights_played = 0
       @longest_road   = 0
 
-      @controls_harbor_for = Catan::RESOURCES.clone
-      @controls_harbor_for.each_pair do |key, value|
-        @controls_harbor_for[key] = false
+      @controls_trade_hub_for = Catan::RESOURCES.clone
+      @controls_trade_hub_for.each_pair do |key, value|
+        @controls_trade_hub_for[key] = false
       end
-      @controls_harbor_for[:general] = false
+      @controls_trade_hub_for[:general] = false
 
       @pieces_remaining = {}
       Piece.constants.each do |type|
