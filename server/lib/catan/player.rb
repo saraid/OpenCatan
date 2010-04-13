@@ -89,6 +89,8 @@ module OpenCatan
         @game.current_turn.spend_gold(self, parameters.shift)
       when 'play'
         @game.current_turn.play_card(parameters.shift)
+      when 'upgrade'
+        @game.current_turn.upgrade(parameters.shift)
       when 'done'
         @game.current_turn.done
         @development_cards.each do |card| card.set_playable! end

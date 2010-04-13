@@ -119,7 +119,7 @@ module OpenCatan
         attr_accessor :intersection
         def do
           @actor.receive_piece(:settlement, @intersection.piece)
-          @intersection.piece = @actor.play_piece(:city)
+          @intersection.upgrade_with @actor.play_piece(:city)
           super
         end
       end

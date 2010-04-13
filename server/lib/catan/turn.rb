@@ -51,7 +51,7 @@ module OpenCatan
         event :buy_card do
           transition :nothing => same, :if => :dice_rolled?
         end
-        event :buy_settlement, :buy_road, :buy_boat, :road_building do
+        event :buy_settlement, :buy_road, :buy_boat, :buy_city, :road_building do
           transition :nothing => :placing_piece, :if => :dice_rolled?
         end
         event :place_piece do
@@ -72,7 +72,14 @@ module OpenCatan
             next
           end
           hex.intersections.each do |intersection|
-            if intersection.piece
+            (case intersection.piece
+            when Piece::Settlement
+              1
+            when Piece::City
+              2
+            else
+              0
+            end).times do |x|
               intersection.piece.owner.receive hex.product
               roll_result(intersection.piece.owner, hex.product)
             end

@@ -184,6 +184,11 @@ module OpenCatan
         @piece.owner.controls_trade_hub_for[@trade_hub.type] = true if @trade_hub
       end
 
+      def upgrade_with(piece)
+        raise OpenCatanException unless @piece
+        @piece = piece
+      end
+
       def to_s
         @id.to_s
       end
