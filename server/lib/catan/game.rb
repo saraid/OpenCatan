@@ -160,12 +160,17 @@ module OpenCatan
       game.current_player.submit_command "done"
 
       game.current_player.submit_command "roll" # Player 0
+      game.players[3].submit_command     "spend", "{\"wheat\":1}"
       game.current_player.submit_command "done"
 
       game.current_player.submit_command "roll" # Player 1
       game.current_player.submit_command "play", "42"
       game.current_player.submit_command "place", "road", "30-37"
       game.current_player.submit_command "place", "road", "37-7"
+      game.current_player.submit_command "done"
+
+      game.current_player.submit_command "roll" # Player 2
+      game.players[3].submit_command     "spend", "{\"wheat\":1}"
       game.current_player.submit_command "done"
 
       game
