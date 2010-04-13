@@ -99,3 +99,11 @@ end
 @game.current_player.submit_command "roll" # Player 0
 @game.players[3].submit_command     "spend", "{\"wheat\":1,\"ore\":1}"
 @game.current_player.submit_command "done"
+
+@game.current_player.submit_command "roll" # Player 1
+@game.current_player.submit_command "buy", "road"
+@game.current_player.submit_command "place", "road", "7-8"
+@game.current_player.submit_command "done"
+
+@game.current_player.submit_command "roll" # Player 2
+@game.current_player.submit_command "done"

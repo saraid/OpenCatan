@@ -216,7 +216,7 @@ module OpenCatan
       end
 
       def other_side(intersection)
-        @intersections.detect { |inter| inter != intersection }
+        @intersections.detect { |inter| inter.id != intersection.id }
       end
 
       def to_s
