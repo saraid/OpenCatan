@@ -163,8 +163,14 @@ module OpenCatan
         hex.place_intersection(self, true) unless recursing
       end
 
-      def connect_with(intersection)
-        @paths << Path.new(intersection, self)
+      def connect_with(intersection_or_path)
+        case intersection_or_path
+        when Intersection
+          @paths << Path.new(intersection_or_path, self)
+          intersection_or_path.connect_with(@paths.last)
+        when Path
+          @paths << intersection_or_path
+        end
       end
 
       def distance

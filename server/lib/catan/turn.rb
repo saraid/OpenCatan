@@ -51,11 +51,12 @@ module OpenCatan
         event :buy_card do
           transition :nothing => same, :if => :dice_rolled?
         end
-        event :buy_settlement, :buy_road, :buy_boat do
+        event :buy_settlement, :buy_road, :buy_boat, :road_building do
           transition :nothing => :placing_piece, :if => :dice_rolled?
         end
         event :place_piece do
-          transition :placing_piece => :nothing
+          transition :placing_piece => :nothing, :if => :road_building_done?
+          transition :placing_piece => same
         end
       end
 
@@ -112,6 +113,7 @@ module OpenCatan
         @player.act(Player::Action::PlaceSettlement.on(@game.board.find_intersection(intersection))) if place_piece
       end
       def place_road(path)
+        @roads_to_build -= 1 if @roads_to_build
         @player.act(Player::Action::PlaceRoad.on(@game.board.find_path(path))) if place_piece
       end
       def place_boat(path)
@@ -136,6 +138,13 @@ module OpenCatan
         @player.act(Player::Action::PlayCard.new(card))
       end
 
+      def road_building
+        @roads_to_build = 2 if super
+      end
+      def road_building_done?
+        @roads_to_build == 0 || @roads_to_build.nil?
+      end
+
       private
       def roll_result(player, resource)
         @roll_results ||= {}
@@ -148,6 +157,7 @@ module OpenCatan
       def update_status
         @gold_holders = @game.players.select do |player| player.has_gold? end
         @status = "Waiting for #{@gold_holders.collect { |player| player.name }.join(', ')} to spend gold." and return unless @gold_holders.empty?
+        @status = 'Purchasing' and return if purchase_state != 'nothing'
         @status = 'ok'
       end
 

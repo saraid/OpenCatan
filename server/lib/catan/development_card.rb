@@ -28,6 +28,10 @@ module OpenCatan
 
     class RoadBuilding < ProgressCard
       AMOUNT_IN_DECK = 2
+
+      def use(player, game)
+        game.current_turn.road_building!
+      end
     end
 
     class YearOfPlenty < ProgressCard
@@ -80,7 +84,7 @@ module OpenCatan
   class RiggedDeck < Deck
     def initialize
       super
-      [50].each do |type|
+      [50, 42].reverse_each do |type|
         unshift(@contents.detect do |card| card.id == type end)
       end
     end

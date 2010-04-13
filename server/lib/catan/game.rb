@@ -134,6 +134,21 @@ p game.deck
       game.current_player.submit_command "place", "road", "30-31"
       game.current_player.submit_command "done"
 
+      game.current_player.submit_command "roll" # Player 2
+      game.current_player.submit_command "done"
+
+      game.current_player.submit_command "roll" # Player 3
+      game.current_player.submit_command "done"
+
+      game.current_player.submit_command "roll" # Player 0
+      game.current_player.submit_command "done"
+
+      game.current_player.submit_command "roll" # Player 1
+      game.current_player.submit_command "play", "42"
+      game.current_player.submit_command "place", "road", "30-37"
+      game.current_player.submit_command "place", "road", "37-7"
+      game.current_player.submit_command "done"
+
       game
     end
   end
