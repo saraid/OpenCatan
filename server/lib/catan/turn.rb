@@ -1,6 +1,8 @@
 require 'catan/action'
 
 module OpenCatan
+  class TurnStateException < OpenCatanException; end
+
   class Player
     # A turn begins when the previous turn ends.
     # A turn ends when the player submits DONE.
@@ -12,49 +14,13 @@ module OpenCatan
         @player = player
         @game = game
         @actions = []
-        @turn_state = TurnState.new
+        @status = 'ok'
         super()
       end
-      attr_reader :turn_state
 
-      class TurnState
-        def initialize
-          @status = 'ok'
-        end
-
-        def roll_result(player, resource)
-          @roll_results ||= {}
-          @roll_results[player] ||= {}
-          @roll_results[player][resource] ||= 0
-          @roll_results[player][resource] = @roll_results[player][resource].succ
-          @gold_holders = @roll_results.select { |player, resources| resources[:gold] }.collect do |x| x.first end
-          update_status
-        end
-
-        def gold_spent(player)
-          @gold_holders.delete(player)
-          update_status
-        end
-
-        def update_status
-          @status = "Waiting for #{@gold_holders.collect { |player| player.name }.join(', ')} to spend gold." and return unless @gold_holders.empty?
-          @status = 'ok'
-        end
-        private :update_status
-
-        def summary
-          roll_results = []
-          @roll_results.each_pair do |player, resources|
-            roll_results << "#{player.name} collected #{resources.collect { |resource, amount| "#{amount} #{resource}" }.join(', ')}"
-          end if @roll_results
-          { :status => @status,
-            :roll_results => roll_results
-          }
-        end
-        def to_s; inspect; end
-        def to_json; summary.to_json; end
-        def inspect; summary.inspect; end
-      end
+      def to_s; inspect; end
+      def to_json; summary.to_json; end
+      def inspect; summary.inspect; end
 
       state_machine :dice_state, :namespace => 'dice', :initial => :rolling do 
         event :roll do
@@ -93,8 +59,30 @@ module OpenCatan
         end
       end
 
+      # Roll Action
+      def roll_dice
+        super
+        @roll = @player.act(Player::Action::Roll.new)
+        rolled_a_seven and return if @roll == 7
+        log "Hexes with #{@roll}: #{game.board.find_hexes_by_number(@roll).join(',')}"
+        game.board.find_hexes_by_number(@roll).each do |hex|
+          if hex.has_robber?
+            log "#{hex} is being robbed!"
+            next
+          end
+          hex.intersections.each do |intersection|
+            if intersection.piece
+              intersection.piece.owner.receive hex.product
+              roll_result(intersection.piece.owner, hex.product)
+            end
+          end
+        end
+      end
+
       # Done Action
       def done
+        update_status
+        raise TurnStateException, @status if @status != 'ok'
         @done = true
         @game.status
         @game.advance_player
@@ -140,28 +128,39 @@ module OpenCatan
           amount.times do |x| player.receive(resource.to_sym) end
         end
         player.gold_spent!
-        turn_state.gold_spent(player)
       end
 
-      def roll_dice
-        super
-        @roll = @player.act(Player::Action::Roll.new)
-        rolled_a_seven and return if @roll == 7
-        log "Hexes with #{@roll}: #{game.board.find_hexes_by_number(@roll).join(',')}"
-        game.board.find_hexes_by_number(@roll).each do |hex|
-          if hex.has_robber?
-            log "#{hex} is being robbed!"
-            next
-          end
-          hex.intersections.each do |intersection|
-            if intersection.piece
-              intersection.piece.owner.receive hex.product
-              turn_state.roll_result(intersection.piece.owner, hex.product)
-            end
-          end
-        end
+      # Play Action
+      def play_card(card)
+        card = @player.get_card(card)
+        @player.act(Player::Action::PlayCard.new(card))
       end
-      
+
+      private
+      def roll_result(player, resource)
+        @roll_results ||= {}
+        @roll_results[player] ||= {}
+        @roll_results[player][resource] ||= 0
+        @roll_results[player][resource] = @roll_results[player][resource].succ
+        update_status
+      end
+
+      def update_status
+        @gold_holders = @game.players.select do |player| player.has_gold? end
+        @status = "Waiting for #{@gold_holders.collect { |player| player.name }.join(', ')} to spend gold." and return unless @gold_holders.empty?
+        @status = 'ok'
+      end
+
+      def summary
+        roll_results = []
+        @roll_results.each_pair do |player, resources|
+          roll_results << "#{player.name} collected #{resources.collect { |resource, amount| "#{amount} #{resource}" }.join(', ')}"
+        end if @roll_results
+        { :status => @status,
+          :roll_results => roll_results
+        }
+      end
+
     end
   end
 end

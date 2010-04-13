@@ -39,6 +39,10 @@ module OpenCatan
       @resources.values.inject(0) do |sum, n| sum + n end
     end
 
+    def get_card(card_id)
+      @development_cards.detect do |card| card.id == card_id.to_i end
+    end
+
     def play_piece(type)
       raise OpenCatanException, "Out of pieces" if @pieces_remaining[type].empty?
       @pieces_remaining[type].shift
@@ -55,12 +59,17 @@ module OpenCatan
       @resources[resource] = @resources[resource].succ
     end
 
+    def has_gold?
+      @gold > 0
+    end
+
     def gold_spent!
       @gold = 0
     end
 
     def draw_card
       @development_cards << @game.deck.draw
+      log "#{name} drew a #{@development_cards.last}"
     end
 
     attr_reader :game
@@ -80,11 +89,13 @@ module OpenCatan
         @game.current_turn.send(:"place_#{parameters.shift}", parameters.shift)
       when 'spend'
         @game.current_turn.spend_gold(self, parameters.shift)
+      when 'play'
+        @game.current_turn.play_card(parameters.shift)
       when 'done'
         @game.current_turn.done
         @development_cards.each do |card| card.set_playable! end
       end
-      @game.current_turn.turn_state
+      @game.current_turn
     end
 
   end

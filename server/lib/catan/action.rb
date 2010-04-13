@@ -146,6 +146,17 @@ module OpenCatan
       class PlaceBoat < PlaceAction
         def initialize; @piece_type = :boat; end
       end
+
+      class PlayCard < Action
+        def initialize(card)
+          @card = card
+        end
+        def do
+          @card.use(@actor, @actor.game)
+          @actor.game.deck.discard(@card)
+          super
+        end
+      end
     end
   end
 end

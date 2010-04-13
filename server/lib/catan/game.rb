@@ -47,11 +47,6 @@ module OpenCatan
       @turns.last
     end
 
-    def status
-      log(current_turn.turn_state.inspect)
-      log(players.collect do |player| "#{player.name}: #{player.resources.inspect}" end)
-    end
-
     def advance_player
       @player_pointer = @player_pointer.succ
       @player_pointer = 0 if @player_pointer == @players.length
@@ -63,10 +58,15 @@ module OpenCatan
       @player_pointer = @players.length - 1 if @player_pointer == -1
     end
 
+    def status
+      log(current_turn.inspect)
+      log(players.collect do |player| "#{player.name}: #{player.resources.inspect}" end)
+    end
+
     def self.test
-      require 'random_data'
       game = Game.new
       game.rig!
+p game.deck
       np = 4
       colors = ['red', 'orange', 'blue', 'white']
       np.times do |x| game.add_player(Player.new("Player #{x}", colors[x])) end
@@ -100,19 +100,38 @@ module OpenCatan
       game.start_game
 
       game.status
+      game.players[3].submit_command "spend", "{\"wood\":1}"
 
-      game.current_player.submit_command "roll"
+      game.current_player.submit_command "roll" # Player 0
       game.current_player.submit_command "buy", "road"
       game.current_player.submit_command "place", "road", "75-105"
       game.current_player.submit_command "done"
 
-      game.current_player.submit_command "roll"
+      game.current_player.submit_command "roll" # Player 1
       game.current_player.submit_command "buy", "card"
       game.current_player.submit_command "done"
 
-      game.current_player.submit_command "roll"
+      game.current_player.submit_command "roll" # Player 2
       game.status
-      game.players[0].submit_command "spend", "{\"wheat\":1}"
+      game.players[0].submit_command     "spend", "{\"wheat\":1}"
+      game.current_player.submit_command "done"
+
+      game.current_player.submit_command "roll" # Player 3
+      game.current_player.submit_command "done"
+
+      game.current_player.submit_command "roll" # Player 0
+      game.status
+      game.players[3].submit_command     "spend", "{\"wood\":1}"
+      game.current_player.submit_command "buy", "settlement"
+      game.current_player.submit_command "place", "settlement", "105"
+      game.current_player.submit_command "done"
+
+      game.current_player.submit_command "roll" # Player 1
+      game.current_player.submit_command "buy", "card"
+      game.current_player.submit_command "play", "50"
+      game.current_player.submit_command "spend", "{\"wood\":1,\"clay\":1}"
+      game.current_player.submit_command "buy", "road"
+      game.current_player.submit_command "place", "road", "30-31"
       game.current_player.submit_command "done"
 
       game

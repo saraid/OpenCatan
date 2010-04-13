@@ -72,7 +72,7 @@ module OpenCatan
     def find_intersection(id)
       each_hex do |hex|
         intersection = hex.intersections.detect do |intersection|
-          intersection.id == id
+          intersection.id == id.to_i
         end
         return intersection if intersection
       end

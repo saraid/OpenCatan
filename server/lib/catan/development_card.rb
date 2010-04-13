@@ -32,6 +32,10 @@ module OpenCatan
 
     class YearOfPlenty < ProgressCard
       AMOUNT_IN_DECK = 2
+
+      def use(player, game)
+        2.times do |x| player.receive(:gold) end
+      end
     end
 
     class Monopoly < ProgressCard
@@ -48,7 +52,8 @@ module OpenCatan
 
     def initialize
       @contents = []
-      Deck.constants.each do |card_type|
+      @discards = []
+      Deck.constants.sort.each do |card_type|
         card_class = Deck.const_get(card_type)
         card_class.const_get(:AMOUNT_IN_DECK).times do |i|
           @contents << card_class.new
@@ -63,6 +68,10 @@ module OpenCatan
       @contents.shift
     end
 
+    def discard(card)
+      @discards << card
+    end
+
     def method_missing(id, *args, &block)
       @contents.send(id, *args, &block)
     end
@@ -71,8 +80,8 @@ module OpenCatan
   class RiggedDeck < Deck
     def initialize
       super
-      ["YearOfPlenty"].each do |type|
-        unshift(@contents.detect do |card| card.type == type end)
+      [50].each do |type|
+        unshift(@contents.detect do |card| card.id == type end)
       end
     end
   end
