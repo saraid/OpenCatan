@@ -23,10 +23,27 @@ module OpenCatan
       @deck = RiggedDeck.new
     end
 
+    state_machine :game_state, :initial => :players_joining do
+      event :start_game do
+        transition :players_joining => :game_phase_1
+      end
+
+      event :end_phase_1 do
+        transition :game_phase_1 => :game_phase_2
+      end
+
+      event :end_phase_2 do
+        transition :game_phase_2 => :normal_play
+      end
+
+      event :game_over do
+        transition :normal_play => :game_over
+      end
+    end
+
     attr_reader :players
     def add_player(player)
       @players << player
-      player.join_game(self)
     end
 
     def log_action(action)
@@ -66,10 +83,12 @@ module OpenCatan
     def self.test
       game = Game.new
       game.rig!
-p game.deck
       np = 4
       colors = ['red', 'orange', 'blue', 'white']
-      np.times do |x| game.add_player(Player.new("Player #{x}", colors[x])) end
+      Array.new(np).each_with_index do |meh, x|
+        Player.new("Player #{x}", colors[x]).join_game(game)
+      end
+      
 
       rolls = game.players.collect do |player| player.act(Player::Action::Roll.new) end
       game.player_pointer = rolls.index rolls.max

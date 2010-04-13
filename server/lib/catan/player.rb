@@ -75,6 +75,7 @@ module OpenCatan
     attr_reader :game
     def join_game(game)
       @game = game
+      @game.add_player(self)
     end
 
     def submit_command(*parameters)
