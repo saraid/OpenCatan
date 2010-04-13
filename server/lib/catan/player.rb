@@ -52,19 +52,16 @@ module OpenCatan
       @pieces_remaining[type] << piece
     end
 
-    def receive(resource)
+    def receive(resource, from_gold = false)
       return if resource.nil?
       log "#{name} receives 1 #{resource}"
-      @gold = @gold.succ and return if resource == :gold
-      @resources[resource] = @resources[resource].succ
+      @gold += 1 and return if resource == :gold
+      @gold -= 1 if from_gold
+      @resources[resource] += 1
     end
 
     def has_gold?
       @gold > 0
-    end
-
-    def gold_spent!
-      @gold = 0
     end
 
     def draw_card

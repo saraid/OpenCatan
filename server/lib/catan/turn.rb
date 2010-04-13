@@ -124,12 +124,11 @@ module OpenCatan
       end
 
       # Spend Action
-      def spend_gold(player, resource_hash)
+      def spend_gold(player, resource_hash) # This should really go into an Action subclass
         resources = JSON.parse(resource_hash)
         resources.each_pair do |resource, amount|
-          amount.times do |x| player.receive(resource.to_sym) end
+          amount.times do |x| player.receive(resource.to_sym, true) end
         end
-        player.gold_spent!
       end
 
       # Play Action
