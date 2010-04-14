@@ -169,8 +169,9 @@ module OpenCatan
           @paths << Path.new(intersection_or_path, self)
           intersection_or_path.connect_with(@paths.last)
         when Path
-          @paths << intersection_or_path
+          @paths << intersection_or_path unless @paths.include? intersection_or_path
         end
+        @paths.uniq!
       end
 
       def distance
@@ -203,12 +204,26 @@ module OpenCatan
         @intersections = []
         @intersections << intersection1
         @intersections << intersection2
+        @intersections.sort! do |a, b| a.distance <=> b.distance end
       end
 
       attr_reader :piece
       def piece=(piece)
         raise OpenCatanException, "Path #{self} in use." if @piece
         @piece = piece
+      end
+
+      def hash
+        @intersections.collect {|i| "0%04d" % i.id}.join.to_i
+      end
+
+      def ==(obj)
+        @intersections == obj.instance_variable_get(:@intersections)
+      end
+      def eql?(obj); self == obj; end
+
+      def top_left_endpoint
+        @intersections.first
       end
 
       def has_piece_on_other_side_of(intersection)
