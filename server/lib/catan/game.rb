@@ -107,7 +107,6 @@ module OpenCatan
       @player_pointer = @players.length - 1 if @player_pointer == -1
     end
 
-    # Still missing checks to make sure boats and roads are connected by a settlement.
     def update_road_lengths
       return if self.setting_up?
       roads = []
@@ -134,11 +133,12 @@ module OpenCatan
           next_vertex = current_path[:next_vertex] = current_path[:edge].other_side(current_path[:vertex])
           break if roads[section_id][:paths].collect { |tmp| tmp[:vertex] }.include?(next_vertex) # Test for cycles
           next_path = (next_vertex.piece && next_vertex.piece.owner == owner) || next_vertex.piece.nil?
-          break unless next_path # If there is nowhere to go, then we're done.
+          break unless next_path # If there is a settlement in the way, we're done.
           current_path[:forks] = next_vertex.paths.select do |path|
-            path.piece && path.piece.owner == owner && path != road
+            path.piece && path.piece.owner == owner && path != road \ # Find forks
+            && (path.piece.class == road.piece.class || next_vertex.piece.present?) # road-boat transitions need a settlement
+                                                                                    # We already know it's the right owner.
           end
-          current_path[:forks].delete road
           road = current_path[:forks].first
 
           # We've hit an endpoint. Rewind and count passed-by forks.
