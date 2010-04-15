@@ -87,6 +87,8 @@ log
 
 @game.current_player.submit_command "roll" # Blue
 @game.players[3].submit_command     "spend", "{\"ore\":1}"
+@game.current_player.submit_command "buy", "city"
+@game.current_player.submit_command "upgrade", "82"
 @game.current_player.submit_command "done"
 
 @game.current_player.submit_command "roll" # White
@@ -101,9 +103,14 @@ log
 @game.current_player.submit_command "done"
 
 @game.current_player.submit_command "roll" # Blue
+@game.current_player.submit_command "buy", "card"
+@game.current_player.submit_command "buy", "card"
 @game.current_player.submit_command "done"
 
 @game.current_player.submit_command "roll" # White
 @game.current_player.submit_command "buy", "city"
 @game.current_player.submit_command "upgrade", "196"
+@game.current_player.submit_command "play", "42"
+@game.current_player.submit_command "place", "road", "142-110"
+@game.current_player.submit_command "place", "road", "88-110"
 @game.current_player.submit_command "done"
