@@ -136,7 +136,7 @@ module OpenCatan
           next_path = (next_vertex.piece && next_vertex.piece.owner == owner) || next_vertex.piece.nil?
           break unless next_path # If there is a settlement in the way, we're done.
           current_path[:forks] = next_vertex.paths.select do |path|
-            path.piece && path.piece.owner == owner && path != road \ # Find forks
+            path.piece && path.piece.owner == owner && path != road \
             && (path.piece.class == road.piece.class || next_vertex.piece.present?) # road-boat transitions need a settlement
                                                                                     # We already know it's the right owner.
           end
