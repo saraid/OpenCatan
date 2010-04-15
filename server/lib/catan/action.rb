@@ -43,9 +43,10 @@ module OpenCatan
       end
 
       class Roll < Action
+        attr_reader :roll
         def do
-          roll = @actor.game.dice.roll(2)
-          log "#{@actor.name} rolled #{roll}"
+          @roll = @actor.game.dice.roll(2)
+          log "#{@actor.name} rolled #{@roll}"
           super
           return roll
         end
@@ -133,7 +134,7 @@ module OpenCatan
         attr_accessor :location
         def do
           @location.piece = @actor.play_piece(@piece_type)
-          log "#{@actor.name} placed a #{@piece_type} on #{@location}"
+          log "#{@actor.name} placed a #{@piece_type} on #{@location.inspect}"
           super
         end
       end

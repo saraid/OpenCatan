@@ -80,17 +80,17 @@ module OpenCatan
       action = parameters.shift
       case action
       when 'roll'
-        @game.current_turn.roll_dice
+        @game.current_turn.roll_dice(self)
       when 'buy'
-        @game.current_turn.send(:"buy_#{parameters.shift}")
+        @game.current_turn.send(:"buy_#{parameters.shift}", self)
       when 'place'
-        @game.current_turn.send(:"place_#{parameters.shift}", parameters.shift)
+        @game.current_turn.send(:"place_#{parameters.shift}", self, parameters.shift)
       when 'spend'
         @game.current_turn.spend_gold(self, parameters.shift)
       when 'play'
-        @game.current_turn.play_card(parameters.shift)
+        @game.current_turn.play_card(self, parameters.shift)
       when 'upgrade'
-        @game.current_turn.upgrade(parameters.shift)
+        @game.current_turn.upgrade(self, parameters.shift)
       when 'done'
         @game.current_turn.done
         @development_cards.each do |card| card.set_playable! end

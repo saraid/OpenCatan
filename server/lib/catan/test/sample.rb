@@ -5,105 +5,73 @@ require 'catan/game'
 np = 4
 colors = ['red', 'orange', 'blue', 'white']
 Array.new(np).each_with_index do |meh, x|
-  OpenCatan::Player.new("Player #{x}", colors[x]).join_game(@game)
+  OpenCatan::Player.new(colors[x].capitalize, colors[x]).join_game(@game)
 end
 
-rolls = @game.players.collect do |player| player.act(OpenCatan::Player::Action::Roll.new) end
-@game.player_pointer = rolls.index rolls.max
-log
-log "#{@game.players[@game.player_pointer].name} goes first!"
-
-board = @game.board
-rows    = [4, 1, 1, 3, 8, 2, 4, 7]
-offsets = [1, 3, 1, 2, 3, 2, 2, 3]
-
-np.times do |i|
-  intersection = board[rows[i]][offsets[i]].intersections.first
-  @game.current_player.act(OpenCatan::Player::Action::PlaceSettlement.on(intersection))
-  @game.current_player.act(OpenCatan::Player::Action::PlaceRoad.on(intersection.paths.first))
-  @game.advance_player
-end
-np.times do |i|
-  @game.reverse_pointer
-  intersection = board[rows[np+i]][offsets[np+i]].intersections.first
-  @game.current_player.act(OpenCatan::Player::Action::PlaceSettlement.on(intersection))
-  intersection.hexes.each do |hex|
-    @game.current_player.receive hex.product
-  end
-  @game.current_player.act(OpenCatan::Player::Action::PlaceRoad.on(intersection.paths.first))
-end
-
-@game.dice.remember
 @game.start_game
 
+@game.players[0].submit_command "roll"
+@game.players[1].submit_command "roll"
+@game.players[2].submit_command "roll"
+@game.players[3].submit_command "roll"
+
+log
+@game.players[0].submit_command "place", "settlement", "76"
+@game.players[0].submit_command "place", "road", "76-75"
+@game.players[1].submit_command "place", "settlement", "34"
+@game.players[1].submit_command "place", "road", "8-34"
+@game.players[2].submit_command "place", "settlement", "26"
+@game.players[2].submit_command "place", "road", "4-26"
+@game.players[3].submit_command "place", "settlement", "57"
+@game.players[3].submit_command "place", "road", "57-56"
+
+log
+@game.players[3].submit_command "place", "settlement", "217"
+@game.players[3].submit_command "place", "road", "243-217"
+@game.players[2].submit_command "place", "settlement", "82"
+@game.players[2].submit_command "place", "road", "82-81"
+@game.players[1].submit_command "place", "settlement", "32"
+@game.players[1].submit_command "place", "road", "32-31"
+@game.players[0].submit_command "place", "settlement", "171"
+@game.players[0].submit_command "place", "road", "171-170"
+
+log
 @game.status
 @game.players[3].submit_command "spend", "{\"wood\":1}"
 
-@game.current_player.submit_command "roll" # Player 0
+log
+@game.current_player.submit_command "roll" # Red
 @game.current_player.submit_command "buy", "road"
 @game.current_player.submit_command "place", "road", "75-105"
 @game.current_player.submit_command "done"
 
-@game.current_player.submit_command "roll" # Player 1
-@game.current_player.submit_command "buy", "card"
+@game.current_player.submit_command "roll" # Orange
 @game.current_player.submit_command "done"
 
-@game.current_player.submit_command "roll" # Player 2
-@game.status
+@game.current_player.submit_command "roll" # Blue
 @game.players[0].submit_command     "spend", "{\"wheat\":1}"
 @game.current_player.submit_command "done"
 
-@game.current_player.submit_command "roll" # Player 3
+@game.current_player.submit_command "roll" # White
+@game.current_player.submit_command "buy", "road"
+@game.current_player.submit_command "place", "road", "56-88"
 @game.current_player.submit_command "done"
 
-@game.current_player.submit_command "roll" # Player 0
-@game.status
-@game.players[3].submit_command     "spend", "{\"wood\":1}"
+@game.current_player.submit_command "roll" # Red
+@game.players[3].submit_command     "spend", "{\"wheat\":1}"
 @game.current_player.submit_command "buy", "settlement"
 @game.current_player.submit_command "place", "settlement", "105"
 @game.current_player.submit_command "done"
 
-@game.current_player.submit_command "roll" # Player 1
+@game.current_player.submit_command "roll" # Orange
+@game.current_player.submit_command "done"
+
+@game.current_player.submit_command "roll" # Blue
+@game.current_player.submit_command "done"
+
+@game.current_player.submit_command "roll" # White
 @game.current_player.submit_command "buy", "card"
 @game.current_player.submit_command "play", "50"
 @game.current_player.submit_command "spend", "{\"wood\":1,\"clay\":1}"
 @game.current_player.submit_command "buy", "road"
-@game.current_player.submit_command "place", "road", "30-31"
-@game.current_player.submit_command "done"
-
-@game.current_player.submit_command "roll" # Player 2
-@game.current_player.submit_command "done"
-
-@game.current_player.submit_command "roll" # Player 3
-@game.current_player.submit_command "done"
-
-@game.current_player.submit_command "roll" # Player 0
-@game.players[3].submit_command     "spend", "{\"wheat\":1}"
-@game.current_player.submit_command "done"
-
-@game.current_player.submit_command "roll" # Player 1
-@game.current_player.submit_command "play", "42"
-@game.current_player.submit_command "place", "road", "30-37"
-@game.current_player.submit_command "place", "road", "37-7"
-@game.current_player.submit_command "done"
-
-@game.current_player.submit_command "roll" # Player 2
-@game.players[3].submit_command     "spend", "{\"wheat\":1}"
-@game.current_player.submit_command "done"
-
-@game.current_player.submit_command "roll" # Player 3
-@game.current_player.submit_command "buy", "city"
-@game.current_player.submit_command "upgrade", "217"
-@game.current_player.submit_command "done"
-
-@game.current_player.submit_command "roll" # Player 0
-@game.players[3].submit_command     "spend", "{\"wheat\":1,\"ore\":1}"
-@game.current_player.submit_command "done"
-
-@game.current_player.submit_command "roll" # Player 1
-@game.current_player.submit_command "buy", "road"
-@game.current_player.submit_command "place", "road", "7-8"
-@game.current_player.submit_command "done"
-
-@game.current_player.submit_command "roll" # Player 2
-@game.current_player.submit_command "done"
+@game.current_player.submit_command "place", "road", "196-217"

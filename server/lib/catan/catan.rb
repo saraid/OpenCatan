@@ -1,4 +1,5 @@
 require 'active_support'
+require 'state_machine'
 require 'ext/array'
 
 module OpenCatan

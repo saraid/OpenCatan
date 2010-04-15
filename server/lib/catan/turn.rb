@@ -6,12 +6,8 @@ module OpenCatan
   class Player
     # A turn begins when the previous turn ends.
     # A turn ends when the player submits DONE.
-    require 'state_machine'
     class Turn
-      attr_reader :game
-
-      def initialize(player, game)
-        @player = player
+      def initialize(game)
         @game = game
         @actions = []
         @status = 'ok'
@@ -61,12 +57,13 @@ module OpenCatan
       end
 
       # Roll Action
-      def roll_dice
+      def roll_dice(player)
         super
-        @roll = @player.act(Player::Action::Roll.new)
+        @roll = player.act(Player::Action::Roll.new)
+        return if @game.setting_up?
         rolled_a_seven and return if @roll == 7
-        log "Hexes with #{@roll}: #{game.board.find_hexes_by_number(@roll).join(',')}"
-        game.board.find_hexes_by_number(@roll).each do |hex|
+        log "Hexes with #{@roll}: #{@game.board.find_hexes_by_number(@roll).join(',')}"
+        @game.board.find_hexes_by_number(@roll).each do |hex|
           if hex.has_robber?
             log "#{hex} is being robbed!"
             next
@@ -99,35 +96,37 @@ module OpenCatan
       def done?; @done; end
 
       # Buy Actions
-      def buy_settlement
-        @player.act(Player::Action::BuySettlement.new) if super
+      def buy_settlement(player)
+        player.act(Player::Action::BuySettlement.new) if super
       end
-      def buy_road
-        @player.act(Player::Action::BuyRoad.new) if super
+      def buy_road(player)
+        player.act(Player::Action::BuyRoad.new) if super
       end
-      def buy_boat
-        @player.act(Player::Action::BuyBoat.new) if super
+      def buy_boat(player)
+        player.act(Player::Action::BuyBoat.new) if super
       end
-      def buy_city
-        @player.act(Player::Action::BuyCity.new) if super
+      def buy_city(player)
+        player.act(Player::Action::BuyCity.new) if super
       end
-      def buy_card
-        @player.act(Player::Action::BuyCard.new) if super
+      def buy_card(player)
+        player.act(Player::Action::BuyCard.new) if super
       end
 
       # Place Actions
-      def place_settlement(intersection)
-        @player.act(Player::Action::PlaceSettlement.on(@game.board.find_intersection(intersection))) if place_piece
+      def place_settlement(player, intersection)
+        intersection = @game.board.find_intersection(intersection)
+        player.act(Player::Action::PlaceSettlement.on(intersection)) if @game.setting_up? || place_piece
+        intersection.hexes.each do |hex| player.receive hex.product end if @game.placing_settlements_in_reverse?
       end
-      def place_road(path)
+      def place_road(player, path)
         @roads_to_build -= 1 if @roads_to_build
-        @player.act(Player::Action::PlaceRoad.on(@game.board.find_path(path))) if place_piece
+        player.act(Player::Action::PlaceRoad.on(@game.board.find_path(path))) if @game.setting_up? || place_piece
       end
-      def place_boat(path)
-        @player.act(Player::Action::PlaceBoat.on(@game.board.find_path(path))) if place_piece
+      def place_boat(player, path)
+        player.act(Player::Action::PlaceBoat.on(@game.board.find_path(path))) if @game.setting_up? || place_piece
       end
-      def upgrade(intersection)
-        @player.act(Player::Action::UpgradeSettlement.on(@game.board.find_intersection(intersection))) if place_piece
+      def upgrade(player, intersection)
+        player.act(Player::Action::UpgradeSettlement.on(@game.board.find_intersection(intersection))) if place_piece
       end
 
       # Spend Action
@@ -139,11 +138,12 @@ module OpenCatan
       end
 
       # Play Action
-      def play_card(card)
-        card = @player.get_card(card)
-        @player.act(Player::Action::PlayCard.new(card))
+      def play_card(player, card)
+        card = player.get_card(card)
+        player.act(Player::Action::PlayCard.new(card))
       end
 
+      private
       def road_building
         @roads_to_build = 2 if super
       end
@@ -151,7 +151,6 @@ module OpenCatan
         @roads_to_build == 0 || @roads_to_build.nil?
       end
 
-      private
       def roll_result(player, resource)
         @roll_results ||= {}
         @roll_results[player] ||= {}
@@ -168,6 +167,7 @@ module OpenCatan
       end
 
       def summary
+        update_status
         roll_results = []
         @roll_results.each_pair do |player, resources|
           roll_results << "#{player.name} collected #{resources.collect { |resource, amount| "#{amount} #{resource}" }.join(', ')}"
@@ -177,6 +177,23 @@ module OpenCatan
         }
       end
 
+    end
+
+  end
+
+  class SetupTurn
+    def initialize(game)
+      @placeholder_turn = Player::Turn.new(game)
+      @setup_methods = {:roll_dice => 0, :place_settlement => 0, :place_road => nil, :spend_gold => nil}
+    end
+    attr_reader :setup_methods
+
+    def method_missing(id, *args, &block)
+      if @setup_methods.keys.include? id
+        @setup_methods[id] += 1 if @setup_methods[id]
+        return @placeholder_turn.send(id, *args, &block)
+      end
+      super
     end
   end
 end
