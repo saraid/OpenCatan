@@ -155,8 +155,9 @@ module OpenCatan
             next_vertex = road.other_side(next_path[:vertex]) if road
           end
         end
-        #roads[section_id][:count] = roads[section_id][:paths].length
       end
+
+      # Find the longest road among all players.
       longest_road = 0
       @players.each do |player|
         player.longest_road = roads.select { |x| x[:owner] == player }.max { |a,b| a[:count] <=> b[:count] }[:count]
