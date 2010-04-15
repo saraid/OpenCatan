@@ -121,11 +121,14 @@ module OpenCatan
         next_vertex = road.top_left_endpoint
 
         section_id = roads.length
-        roads[section_id] = { :count => nil, :owner => owner, :paths => [] }
+        roads[section_id] = { :count => 0, :owner => owner, :paths => [] }
+        current_path_count = 0
         until road.nil? do
+          current_path_count += 1
           roads[section_id][:paths] << { :vertex => next_vertex, :edge => road }
           current_path = roads[section_id][:paths].last
           next_vertex = current_path[:next_vertex] = current_path[:edge].other_side(current_path[:vertex])
+          break if roads[section_id][:paths].collect { |tmp| tmp[:vertex] }.include?(next_vertex) # Test for cycles
           next_path = (next_vertex.piece && next_vertex.piece.owner == owner) || next_vertex.piece.nil?
           break unless next_path
           current_path[:forks] = next_vertex.paths.select do |path|
@@ -133,8 +136,21 @@ module OpenCatan
           end
           current_path[:forks].delete road
           road = current_path[:forks].first
+
+          if road.nil?
+            current_path[:next_vertex] = nil
+            roads[section_id][:count] = current_path_count if current_path_count > roads[section_id][:count]
+            # Walk back to find a fork.
+            next_path = (roads[section_id][:paths].reverse.detect do |piece|
+              current_path_count -= 1
+              piece[:forks].length == 2 \
+              && !roads[section_id][:paths].collect { |tmp| tmp[:edge] }.include?(piece[:forks].last)
+            end || {:forks => []})
+            road = next_path[:forks].last
+            next_vertex = road.other_side(next_path[:vertex]) if road
+          end
         end
-        roads[section_id][:count] = roads[section_id][:paths].length
+        #roads[section_id][:count] = roads[section_id][:paths].length
       end
       longest_road = 0
       @players.each do |player|
@@ -142,7 +158,7 @@ module OpenCatan
         longest_road = player.longest_road if longest_road < player.longest_road
       end
       top_ranked = @players.select do |player| player.longest_road == longest_road end
-      @longest_road = top_ranked.length == 1 ? top_ranked.first : nil
+      @longest_road = (longest_road >= 5 && top_ranked.length == 1) ? top_ranked.first : nil
 
       roads.each { |x| x[:owner] = x[:owner].name } # for debugging
     end

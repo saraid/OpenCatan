@@ -24,7 +24,7 @@ module OpenCatan
                  8, 7, 4, 6,
                  8, 8, 8, 10,
                  6, 8, 6, 6,
-                 8
+                 8, 8, 6, 6,
                 ]
     end
     def roll(number = 1, sides = 6)
