@@ -55,6 +55,7 @@ module OpenCatan
             pair << hex
             pair.each do |this_hex| intersection.in_hex(this_hex) end
             pair.each do |this_hex| this_hex.remove_duplicates! end
+            intersection.add_to_hexes
           end
         end
       end
@@ -160,7 +161,10 @@ module OpenCatan
       def in_hex(hex, recursing = false)
         return if @hexes.include?(hex) || hex.nil?
         @hexes << hex
-        hex.place_intersection(self, true) unless recursing
+      end
+
+      def add_to_hexes
+        @hexes.each do |hex| hex.place_intersection(self, true) end
       end
 
       def connect_with(intersection_or_path)

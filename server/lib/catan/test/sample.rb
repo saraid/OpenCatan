@@ -26,8 +26,8 @@ log
 @game.players[3].submit_command "place", "road", "57-56"
 
 log
-@game.players[3].submit_command "place", "settlement", "217"
-@game.players[3].submit_command "place", "road", "243-217"
+@game.players[3].submit_command "place", "settlement", "196"
+@game.players[3].submit_command "place", "road", "196-164"
 @game.players[2].submit_command "place", "settlement", "82"
 @game.players[2].submit_command "place", "road", "82-81"
 @game.players[1].submit_command "place", "settlement", "32"
@@ -74,4 +74,36 @@ log
 @game.current_player.submit_command "play", "50"
 @game.current_player.submit_command "spend", "{\"wood\":1,\"clay\":1}"
 @game.current_player.submit_command "buy", "road"
-@game.current_player.submit_command "place", "road", "196-217"
+@game.current_player.submit_command "place", "road", "164-142"
+@game.current_player.submit_command "done"
+
+@game.current_player.submit_command "roll" # Red
+@game.players[3].submit_command     "spend", "{\"wheat\":1}"
+@game.current_player.submit_command "done"
+
+@game.current_player.submit_command "roll" # Orange
+@game.players[3].submit_command     "spend", "{\"wheat\":1}"
+@game.current_player.submit_command "done"
+
+@game.current_player.submit_command "roll" # Blue
+@game.players[3].submit_command     "spend", "{\"ore\":1}"
+@game.current_player.submit_command "done"
+
+@game.current_player.submit_command "roll" # White
+@game.current_player.submit_command "buy", "card"
+@game.current_player.submit_command "done"
+
+@game.current_player.submit_command "roll" # Red
+@game.current_player.submit_command "done"
+
+@game.current_player.submit_command "roll" # Orange
+@game.players[3].submit_command     "spend", "{\"wheat\":1}"
+@game.current_player.submit_command "done"
+
+@game.current_player.submit_command "roll" # Blue
+@game.current_player.submit_command "done"
+
+@game.current_player.submit_command "roll" # White
+@game.current_player.submit_command "buy", "city"
+@game.current_player.submit_command "upgrade", "196"
+@game.current_player.submit_command "done"

@@ -43,6 +43,10 @@ module OpenCatan
       @development_cards.detect do |card| card.id == card_id.to_i end
     end
 
+    def discard(card)
+      @game.deck.discard(@development_cards.delete(card))
+    end
+
     def play_piece(type)
       raise OpenCatanException, "Out of pieces" if @pieces_remaining[type].empty?
       @pieces_remaining[type].shift

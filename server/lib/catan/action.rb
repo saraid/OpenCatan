@@ -154,7 +154,7 @@ module OpenCatan
         end
         def do
           @card.use(@actor, @actor.game)
-          @actor.game.deck.discard(@card)
+          @actor.discard(@card)
           super
         end
       end
