@@ -14,6 +14,10 @@ module OpenCatan
       @board = Board.deserialize_from_yaml("catan/sample/meh5x9_num.yml")
       @players = []
       @player_pointer = nil
+
+      @longest_road = nil
+      @most_knights = nil
+
       start_state_machine # Why is the state_machine not working!? I don't know!
     end
     attr_reader :dice, :deck, :board, :players
@@ -104,11 +108,11 @@ module OpenCatan
     end
 
     def update_road_lengths
+      return if self.setting_up?
       roads = []
       road_pieces = @board.flatten.collect { |hex| hex.intersections.collect { |intersection|
         intersection.paths.select { |path| path.piece }
       }}.flatten.uniq
-counter = 0
       road_pieces.each do |road_piece|
         next unless road_piece.is_a_trailhead?
 
@@ -117,9 +121,8 @@ counter = 0
         next_vertex = road.top_left_endpoint
 
         section_id = roads.length
-        roads[section_id] = { :count => nil, :owner => owner.name, :paths => [] }
-        until road.nil? || counter == 10 do
-counter += 1
+        roads[section_id] = { :count => nil, :owner => owner, :paths => [] }
+        until road.nil? do
           roads[section_id][:paths] << { :vertex => next_vertex, :edge => road }
           current_path = roads[section_id][:paths].last
           next_vertex = current_path[:next_vertex] = current_path[:edge].other_side(current_path[:vertex])
@@ -131,8 +134,17 @@ counter += 1
           current_path[:forks].delete road
           road = current_path[:forks].first
         end
+        roads[section_id][:count] = roads[section_id][:paths].length
       end
-      roads
+      longest_road = 0
+      @players.each do |player|
+        player.longest_road = roads.select { |x| x[:owner] == player }.max { |a,b| a[:count] <=> b[:count] }[:count]
+        longest_road = player.longest_road if longest_road < player.longest_road
+      end
+      top_ranked = @players.select do |player| player.longest_road == longest_road end
+      @longest_road = top_ranked.length == 1 ? top_ranked.first : nil
+
+      roads.each { |x| x[:owner] = x[:owner].name } # for debugging
     end
 
     def status

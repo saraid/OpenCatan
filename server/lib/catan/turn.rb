@@ -117,13 +117,16 @@ module OpenCatan
         intersection = @game.board.find_intersection(intersection)
         player.act(Player::Action::PlaceSettlement.on(intersection)) if @game.setting_up? || place_piece
         intersection.hexes.each do |hex| player.receive hex.product end if @game.placing_settlements_in_reverse?
+        @game.update_road_lengths
       end
       def place_road(player, path)
         @roads_to_build -= 1 if @roads_to_build
         player.act(Player::Action::PlaceRoad.on(@game.board.find_path(path))) if @game.setting_up? || place_piece
+        @game.update_road_lengths
       end
       def place_boat(player, path)
         player.act(Player::Action::PlaceBoat.on(@game.board.find_path(path))) if @game.setting_up? || place_piece
+        @game.update_road_lengths
       end
       def upgrade(player, intersection)
         player.act(Player::Action::UpgradeSettlement.on(@game.board.find_intersection(intersection))) if place_piece

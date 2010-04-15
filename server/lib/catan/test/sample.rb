@@ -114,3 +114,7 @@ log
 @game.current_player.submit_command "place", "road", "142-110"
 @game.current_player.submit_command "place", "road", "88-110"
 @game.current_player.submit_command "done"
+
+@game.current_player.submit_command "roll" # Red
+@game.players[3].submit_command     "spend", "{\"wood\":2}"
+@game.current_player.submit_command "done"

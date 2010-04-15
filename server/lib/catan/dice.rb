@@ -23,7 +23,9 @@ module OpenCatan
       @rolls += [9, 6, 5, 9,
                  8, 7, 4, 6,
                  8, 8, 8, 10,
-                 6, 8, 6, 6]
+                 6, 8, 6, 6,
+                 8
+                ]
     end
     def roll(number = 1, sides = 6)
       return super if @rolls.empty?
