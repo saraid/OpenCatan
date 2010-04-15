@@ -131,6 +131,7 @@ module OpenCatan
           roads[section_id][:paths] << { :vertex => next_vertex, :edge => road }
           current_path = roads[section_id][:paths].last
           next_vertex = current_path[:next_vertex] = current_path[:edge].other_side(current_path[:vertex])
+          # FIXME: Using 'break' here is the wrong method. We need to unravel to test other forks, not stop the loop.
           break if roads[section_id][:paths].collect { |tmp| tmp[:vertex] }.include?(next_vertex) # Test for cycles
           next_path = (next_vertex.piece && next_vertex.piece.owner == owner) || next_vertex.piece.nil?
           break unless next_path # If there is a settlement in the way, we're done.
