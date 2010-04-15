@@ -43,6 +43,10 @@ module OpenCatan
           transition :stealing_cards => :robber_unmoved
         end
       end
+      def play_knight
+        super
+        @game.update_army_sizes
+      end
 
       state_machine :purchase_state, :initial => :nothing do
         event :buy_card do
@@ -138,6 +142,8 @@ module OpenCatan
         player.act(Player::Action::PlaceRobber.on(hex)) if super
         @stealables = hex.intersections.collect do |i| i.piece.owner if i.piece end.compact
         @stealables.reject! do |player| player.hand_size.zero? end
+        choose_robber_victim(player, @stealables.first) if @stealables.length == 1
+        cards_stolen if @stealables.empty?
       end
 
       # Spend Action
@@ -172,7 +178,7 @@ module OpenCatan
       end
 
       def choose_robber_victim(player, victim)
-        victim = @game.players[victim.to_i]
+        victim = victim.respond_to?(:resources) ? victim : @game.players[victim.to_i]
         player.act(Player::Action::ChooseVictim.new(victim)) if cards_stolen
       end
 

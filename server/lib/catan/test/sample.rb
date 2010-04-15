@@ -143,3 +143,27 @@ log
 
 @game.current_player.submit_command "roll" # Orange
 @game.current_player.submit_command "done"
+
+@game.current_player.submit_command "roll" # Blue
+@game.current_player.submit_command "buy", "card"
+@game.current_player.submit_command "play", "32"
+@game.current_player.submit_command "place", "robber", "5,3"
+@game.current_player.submit_command "play", "35"
+@game.current_player.submit_command "place", "robber", "6,3"
+@game.current_player.submit_command "choose", "0"
+@game.current_player.submit_command "done"
+
+@game.current_player.submit_command "roll" # White
+@game.current_player.submit_command "done"
+
+@game.current_player.submit_command "roll" # Red
+@game.current_player.submit_command "done"
+
+@game.current_player.submit_command "roll" # Orange
+@game.current_player.submit_command "done"
+
+@game.current_player.submit_command "roll" # Blue
+@game.current_player.submit_command "play", "31"
+@game.current_player.submit_command "place", "robber", "8,0"
+@game.current_player.submit_command "done"
+

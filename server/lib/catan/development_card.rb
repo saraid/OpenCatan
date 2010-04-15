@@ -48,10 +48,19 @@ module OpenCatan
 
     class Knight < DevelopmentCard
       AMOUNT_IN_DECK = 14
+
+      def use(player, game)
+        player.played_a_knight
+        game.current_turn.play_knight
+      end
     end
 
     class VictoryPoint < DevelopmentCard
       AMOUNT_IN_DECK = 5
+
+      def use(player, game)
+        player.played_a_victory_point
+      end
     end
 
     def initialize
@@ -84,7 +93,7 @@ module OpenCatan
   class RiggedDeck < Deck
     def initialize
       super
-      [50, 42, 40].reverse_each do |type|
+      [50, 42, 32, 35, 31, 40].reverse_each do |type|
         unshift(@contents.detect do |card| card.id == type end)
       end
     end

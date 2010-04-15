@@ -35,8 +35,14 @@ module OpenCatan
 
     class Action
       attr_accessor :actor
-      def do; @actor.game.log_action(self); @done = true; end
-      def undo; raise OpenCatanException, "Cannot undo what has not been done" unless @done; end
+      def do
+        @actor.game.log_action(self)
+        @actor.game.calculate_victory_points
+        @done = true; 
+      end
+      def undo
+        raise OpenCatanException, "Cannot undo what has not been done" unless @done
+      end
 
       class Done < Action
       end

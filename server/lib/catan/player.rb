@@ -6,7 +6,7 @@ module OpenCatan
   class Player
 
     attr_reader   :name, :color, :controls_trade_hub_for, :resources
-    attr_accessor :longest_road, :knights_played
+    attr_accessor :longest_road, :knights_played, :landfalls
     def initialize(name, color)
       @name = name
       @color = color
@@ -17,6 +17,8 @@ module OpenCatan
 
       @knights_played = 0
       @longest_road   = 0
+      @landfalls      = 0
+      @vp_cards_used  = 0
 
       @controls_trade_hub_for = Catan::RESOURCES.clone
       @controls_trade_hub_for.each_pair do |key, value|
@@ -55,6 +57,14 @@ module OpenCatan
 
     def receive_piece(type, piece)
       @pieces_remaining[type] << piece
+    end
+
+    def played_a_knight
+      @knights_played += 1
+    end
+
+    def played_a_victory_point
+      @vp_cards_used += 1
     end
 
     def receive(resource, from_gold = false)

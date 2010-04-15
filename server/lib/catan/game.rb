@@ -16,7 +16,7 @@ module OpenCatan
       @player_pointer = nil
 
       @longest_road = nil
-      @most_knights = nil
+      @largest_army = nil
 
       @robber = Piece::Robber.new
 
@@ -167,9 +167,35 @@ module OpenCatan
         longest_road = player.longest_road if longest_road < player.longest_road
       end
       top_ranked = @players.select do |player| player.longest_road == longest_road end
+      # You can lose longest_road.
       @longest_road = (longest_road >= 5 && top_ranked.length == 1) ? top_ranked.first : nil
 
       roads.each { |x| x[:owner] = x[:owner].name } # for debugging
+    end
+
+    def update_army_sizes
+      largest_army = @players.collect { |player| player.knights_played }.max
+      top_ranked = @players.select do |player| player.knights_played == largest_army end
+      @largest_army = (largest_army >= 3 && top_ranked.length == 1) ? top_ranked.first : @largest_army
+    end
+
+    def calculate_victory_points
+      @victory_points = {}
+      @players.each do |player|
+        @victory_points[player]  = 0
+        @victory_points[player] += player.landfalls 
+        @victory_points[player] += player.vp_cards_used
+      end
+      towns = @board.flatten.collect do |hex| hex.intersections.select do |intersection| intersection.piece.present? end end.flatten
+      towns.uniq!
+      towns.each do |town|
+        @victory_points[town.piece.owner] += case
+          when Piece::Settlement; 1
+          when Piece::City;       2
+        end
+      end
+      @victory_points[@longest_road] += 2 if @longest_road
+      @victory_points[@largest_army] += 2 if @largest_army
     end
 
     def status
