@@ -103,6 +103,38 @@ module OpenCatan
       @player_pointer = @players.length - 1 if @player_pointer == -1
     end
 
+    def update_road_lengths
+      roads = []
+      road_pieces = @board.flatten.collect { |hex| hex.intersections.collect { |intersection|
+        intersection.paths.select { |path| path.piece }
+      }}.flatten.uniq
+counter = 0
+      road_pieces.each do |road_piece|
+        next unless road_piece.is_a_trailhead?
+
+        road = road_piece
+        owner = road.piece.owner
+        next_vertex = road.top_left_endpoint
+
+        section_id = roads.length
+        roads[section_id] = { :count => nil, :owner => owner.name, :paths => [] }
+        until road.nil? || counter == 10 do
+counter += 1
+          roads[section_id][:paths] << { :vertex => next_vertex, :edge => road }
+          current_path = roads[section_id][:paths].last
+          next_vertex = current_path[:next_vertex] = current_path[:edge].other_side(current_path[:vertex])
+          next_path = (next_vertex.piece && next_vertex.piece.owner == owner) || next_vertex.piece.nil?
+          break unless next_path
+          current_path[:forks] = next_vertex.paths.select do |path|
+            path.piece && path.piece.owner == owner && path != road
+          end
+          current_path[:forks].delete road
+          road = current_path[:forks].first
+        end
+      end
+      roads
+    end
+
     def status
       log(current_turn.inspect)
       log(players.collect do |player|

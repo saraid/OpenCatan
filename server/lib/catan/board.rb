@@ -238,6 +238,12 @@ module OpenCatan
         @intersections.detect { |inter| inter.id != intersection.id }
       end
 
+      def is_a_trailhead?
+        @intersections.any? do |intersection|
+          intersection.paths.select { |path| path != self }.all? do |path| path.piece.nil? end
+        end
+      end
+
       def to_s
         "[#{@intersections.join('-')}]"
       end
