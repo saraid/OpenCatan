@@ -2,9 +2,11 @@
 # roll
 # chat, message
 # 
-# spend, resource_hash # on gold, year-of-plenty, and monopoly cards
+# spend, resource_hash # on gold, year-of-plenty
 # discard, resource_hash
 # place, robber, hex_coords # on 7s and knight cards
+# choose, player_id
+# choose, resource
 # 
 # buy, settlement
 # place, settlement, intersection_id
@@ -133,8 +135,10 @@ module OpenCatan
         end
         attr_accessor :location
         def do
-          @location.piece = @actor.play_piece(@piece_type)
-          log "#{@actor.name} placed a #{@piece_type} on #{@location.inspect}"
+          unless self.class == PlaceRobber
+            @location.piece = @actor.play_piece(@piece_type)
+            log "#{@actor.name} placed a #{@piece_type} on #{@location.inspect}"
+          end
           super
         end
       end
@@ -147,6 +151,13 @@ module OpenCatan
       class PlaceBoat < PlaceAction
         def initialize; @piece_type = :boat; end
       end
+      class PlaceRobber < PlaceAction
+        def do
+          @location.rob!
+          @actor.game.robber.at @location
+          super
+        end
+      end
 
       class PlayCard < Action
         def initialize(card)
@@ -155,6 +166,18 @@ module OpenCatan
         def do
           @card.use(@actor, @actor.game)
           @actor.discard(@card)
+          super
+        end
+      end
+
+      class ChooseVictim < Action
+        def initialize(victim)
+          @victim = victim
+        end
+        def do
+          resource = @victim.rob!
+          log "#{@actor.name} stole 1 #{resource} from #{@victim.name}"
+          @actor.receive resource
           super
         end
       end

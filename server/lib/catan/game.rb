@@ -18,9 +18,11 @@ module OpenCatan
       @longest_road = nil
       @most_knights = nil
 
+      @robber = Piece::Robber.new
+
       start_state_machine # Why is the state_machine not working!? I don't know!
     end
-    attr_reader :dice, :deck, :board, :players
+    attr_reader :dice, :deck, :board, :players, :robber
 
     def rig!
       @dice = LoadedDice.new

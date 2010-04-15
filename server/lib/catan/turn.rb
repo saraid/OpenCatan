@@ -26,14 +26,15 @@ module OpenCatan
 
       state_machine :robber_state, :initial => :robber_unmoved do
         after_transition :on => :rolled_a_seven do |x, y| log "Rolled a 7!" end
+        after_transition :to => :discarding_cards, :do => :check_hand_sizes
         event :rolled_a_seven do
-          transition :robber_unmoved => :discard_cards
+          transition :robber_unmoved => :discarding_cards
         end
         event :play_knight do
           transition :robber_unmoved => :place_robber
         end
         event :discarding_done do
-          transition :discard_cards => :place_robber
+          transition :discarding_cards => :place_robber
         end
         event :place_robber do
           transition :place_robber => :stealing_cards
@@ -131,6 +132,13 @@ module OpenCatan
       def upgrade(player, intersection)
         player.act(Player::Action::UpgradeSettlement.on(@game.board.find_intersection(intersection))) if place_piece
       end
+      def place_robber(player, hex)
+        hex = hex.split(',').collect do |i| i.to_i end
+        hex = @game.board[hex.first][hex.last]
+        player.act(Player::Action::PlaceRobber.on(hex)) if super
+        @stealables = hex.intersections.collect do |i| i.piece.owner if i.piece end.compact
+        @stealables.reject! do |player| player.hand_size.zero? end
+      end
 
       # Spend Action
       def spend_gold(player, resource_hash) # This should really go into an Action subclass
@@ -140,10 +148,35 @@ module OpenCatan
         end
       end
 
+      # Discard Action
+      def discard(player, resource_hash) # This should really go into an Action subclass
+        resources = JSON.parse(resource_hash)
+        resources.each_pair do |resource, amount|
+          player.resources[resource.to_sym] -= amount
+        end
+        @needs_to_discard[player] -= resources.inject(0) { |sum, n| sum + n.last }
+        @needs_to_discard.delete player if @needs_to_discard[player].zero?
+        discarding_done if @needs_to_discard.empty?
+      end
+
       # Play Action
       def play_card(player, card)
         card = player.get_card(card)
         player.act(Player::Action::PlayCard.new(card))
+      end
+
+      # Choose Action
+      def choose(player, option)
+        choose_monopolized_resource(player, option) if Catan::RESOURCES.keys.include? option.to_sym
+        choose_robber_victim(player, option)
+      end
+
+      def choose_robber_victim(player, victim)
+        victim = @game.players[victim.to_i]
+        player.act(Player::Action::ChooseVictim.new(victim)) if cards_stolen
+      end
+
+      def choose_monopolized_resource(player, resource)
       end
 
       private
@@ -152,6 +185,13 @@ module OpenCatan
       end
       def road_building_done?
         @roads_to_build == 0 || @roads_to_build.nil?
+      end
+
+      def check_hand_sizes
+        @needs_to_discard ||= {}
+        @game.players.each do |player|
+          @needs_to_discard[player] = player.hand_size / 2 if player.hand_size >= 7
+        end
       end
 
       def roll_result(player, resource)
@@ -163,8 +203,17 @@ module OpenCatan
       end
 
       def update_status
+        @needs_to_discard ||= {}
         @gold_holders = @game.players.select do |player| player.has_gold? end
         @status = "Waiting for #{@gold_holders.collect { |player| player.name }.join(', ')} to spend gold." and return unless @gold_holders.empty?
+        if robber_state != 'robber_unmoved'
+          case robber_state
+          when 'discarding_cards'
+          @status = "Waiting for #{@needs_to_discard.keys.collect { |player| player.name }.join(', ')} to discard_cards" and return
+          when 'stealing_cards'
+          @status = "Waiting for #{@game.current_player.name} to steal cards. Options: #{@stealables.collect { |player| player.name }}." and return
+          end
+        end
         @status = 'Purchasing' and return if purchase_state != 'nothing'
         @status = 'ok'
       end

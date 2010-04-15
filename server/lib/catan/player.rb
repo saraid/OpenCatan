@@ -65,6 +65,12 @@ module OpenCatan
       @resources[resource] += 1
     end
 
+    def rob!
+      lost = @resources.inject([]) { |resources, n| n.last.times do |i| resources << n.first end; resources }.rand
+      @resources[lost] -= 1
+      lost
+    end
+
     def has_gold?
       @gold > 0
     end
@@ -92,10 +98,14 @@ module OpenCatan
         @game.current_turn.send(:"place_#{parameters.shift}", self, parameters.shift)
       when 'spend'
         @game.current_turn.spend_gold(self, parameters.shift)
+      when 'discard'
+        @game.current_turn.discard(self, parameters.shift)
       when 'play'
         @game.current_turn.play_card(self, parameters.shift)
       when 'upgrade'
         @game.current_turn.upgrade(self, parameters.shift)
+      when 'choose'
+        @game.current_turn.choose(self, parameters.shift)
       when 'done'
         @game.current_turn.done
         @development_cards.each do |card| card.set_playable! end

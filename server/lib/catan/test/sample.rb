@@ -127,8 +127,19 @@ log
 @game.players[3].submit_command     "spend", "{\"sheep\":1,\"wheat\":1}"
 @game.current_player.submit_command "done"
 
-$debug = true
 @game.current_player.submit_command "roll" # White
 @game.current_player.submit_command "buy", "road"
 @game.current_player.submit_command "place", "road", "88-87"
+@game.current_player.submit_command "done"
+
+@game.current_player.submit_command "roll" # Red
+@game.status
+@game.players[0].submit_command     "discard", "{\"ore\":4}"
+@game.players[2].submit_command     "discard", "{\"ore\":5,\"wheat\":1}"
+@game.players[3].submit_command     "discard", "{\"ore\":2,\"wood\":1,\"clay\":1}"
+@game.current_player.submit_command "place", "robber", "2,2"
+@game.current_player.submit_command "choose", "2"
+@game.current_player.submit_command "done"
+
+@game.current_player.submit_command "roll" # Orange
 @game.current_player.submit_command "done"

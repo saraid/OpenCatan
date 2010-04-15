@@ -41,6 +41,10 @@ module OpenCatan
 
     class Robber < Piece
       AMOUNT_PER_PLAYER = 0
+      attr_reader :location
+      def at(hex)
+        @location = hex
+      end
     end
 
   end
