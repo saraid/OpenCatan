@@ -39,7 +39,7 @@ module OpenCatan
         event :place_robber do
           transition :place_robber => :stealing_cards
         end
-        event :cards_stolen do
+        event :choose_robber_victim do
           transition :stealing_cards => :robber_unmoved
         end
       end
@@ -58,6 +58,15 @@ module OpenCatan
         event :place_piece do
           transition :placing_piece => :nothing, :if => :road_building_done?
           transition :placing_piece => same
+        end
+      end
+
+      state_machine :monopoly_state, :initial => :nothing do
+        event :play_monopoly do
+          transition :nothing => :monopolizing
+        end
+        event :choose_monopolized_resource do
+          transition :monopolizing => :nothing
         end
       end
 
@@ -143,7 +152,7 @@ module OpenCatan
         @stealables = hex.intersections.collect do |i| i.piece.owner if i.piece end.compact
         @stealables.reject! do |player| player.hand_size.zero? end
         choose_robber_victim(player, @stealables.first) if @stealables.length == 1
-        cards_stolen if @stealables.empty?
+        choose_robber_victim(nil, nil) if @stealables.empty?
       end
 
       # Spend Action
@@ -178,11 +187,19 @@ module OpenCatan
       end
 
       def choose_robber_victim(player, victim)
+        return super if player.nil?
         victim = victim.respond_to?(:resources) ? victim : @game.players[victim.to_i]
-        player.act(Player::Action::ChooseVictim.new(victim)) if cards_stolen
+        player.act(Player::Action::ChooseVictim.new(victim)) if super
       end
 
       def choose_monopolized_resource(player, resource)
+        super
+        resource = resource.to_sym
+        @game.players.select { |victim| victim != player }.each do |victim|
+          amount = victim.lose(resource)
+          log "#{player.name} stole #{amount} #{resource} from #{victim.name}"
+          amount.times do |i| player.receive resource end
+        end
       end
 
       private

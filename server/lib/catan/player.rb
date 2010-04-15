@@ -6,7 +6,7 @@ module OpenCatan
   class Player
 
     attr_reader   :name, :color, :controls_trade_hub_for, :resources
-    attr_accessor :longest_road, :knights_played, :landfalls
+    attr_accessor :longest_road, :knights_played, :landfalls, :vp_cards_used
     def initialize(name, color)
       @name = name
       @color = color
@@ -78,6 +78,12 @@ module OpenCatan
     def rob!
       lost = @resources.inject([]) { |resources, n| n.last.times do |i| resources << n.first end; resources }.rand
       @resources[lost] -= 1
+      lost
+    end
+
+    def lose(resource)
+      lost = @resources[resource]
+      @resources[resource] = 0
       lost
     end
 

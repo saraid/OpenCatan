@@ -44,6 +44,10 @@ module OpenCatan
 
     class Monopoly < ProgressCard
       AMOUNT_IN_DECK = 2
+
+      def use(player, game)
+        game.current_turn.play_monopoly
+      end
     end
 
     class Knight < DevelopmentCard

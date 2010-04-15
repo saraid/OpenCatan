@@ -154,6 +154,7 @@ log
 @game.current_player.submit_command "done"
 
 @game.current_player.submit_command "roll" # White
+@game.current_player.submit_command "buy", "card"
 @game.current_player.submit_command "done"
 
 @game.current_player.submit_command "roll" # Red
@@ -167,3 +168,7 @@ log
 @game.current_player.submit_command "place", "robber", "8,0"
 @game.current_player.submit_command "done"
 
+@game.current_player.submit_command "roll" # White
+@game.current_player.submit_command "play", "40"
+@game.current_player.submit_command "choose", "ore"
+@game.current_player.submit_command "done"
