@@ -1,4 +1,5 @@
 require 'catan/action'
+require 'catan/trade'
 
 module OpenCatan
   class TurnStateException < OpenCatanException; end
@@ -10,6 +11,7 @@ module OpenCatan
       def initialize(game)
         @game = game
         @actions = []
+        @trades  = []
         @status = 'ok'
         super()
       end
@@ -70,6 +72,18 @@ module OpenCatan
         end
       end
 
+      state_machine :trade_state, :initial => :nothing do
+        event :propose do
+          transition all => :trading
+        end
+        event :respond do
+          transition :trading => same
+        end
+        event :accept, :cancel do
+          transition :trading => :nothing
+        end
+      end
+
       # Roll Action
       def roll_dice(player)
         super
@@ -102,6 +116,7 @@ module OpenCatan
       def done
         update_status
         raise TurnStateException, @status if @status != 'ok'
+        @current_trade.cancel!
         @done = true
         @game.status
         @game.advance_player
@@ -202,6 +217,27 @@ module OpenCatan
         end
       end
 
+      # Trade Actions
+      def propose(player, offer, demand, limited_to)
+        super
+        @trades << TradeNegotiation.new(@game, player, limited_to) unless @trades.last && @trades.last.status == :pending
+        @current_trade = @trades.last
+        @current_trade.propose(player, offer, demand)
+      end
+
+      def respond(player, message)
+        @current_trade.respond(player, message) if super
+      end
+
+      def accept(player, offer)
+        offer = @game.players[offer.to_i]
+        @current_trade.accept(offer) if @current_trade.initiator == player && super
+      end
+
+      def cancel(player)
+        @current_trade.cancel! if @current_trade.initiator == player && super
+      end
+
       private
       def road_building
         @roads_to_build = 2 if super
@@ -232,7 +268,7 @@ module OpenCatan
         if robber_state != 'robber_unmoved'
           case robber_state
           when 'discarding_cards'
-          @status = "Waiting for #{@needs_to_discard.keys.collect { |player| player.name }.join(', ')} to discard_cards" and return
+          @status = "Waiting for #{@needs_to_discard.keys.collect { |player| player.name }.join(', ')} to discard cards" and return
           when 'stealing_cards'
           @status = "Waiting for #{@game.current_player.name} to steal cards. Options: #{@stealables.collect { |player| player.name }}." and return
           end

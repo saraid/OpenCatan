@@ -172,3 +172,8 @@ log
 @game.current_player.submit_command "play", "40"
 @game.current_player.submit_command "choose", "ore"
 @game.current_player.submit_command "done"
+
+@game.current_player.submit_command "roll" # Red
+@game.current_player.submit_command "propose", {:wood=>1}.to_json, {:sheep=>1}.to_json
+@game.players[2].submit_command     "propose", {:clay=>1}.to_json, {:wood=>1}.to_json
+@game.current_player.submit_command "accept", "2"

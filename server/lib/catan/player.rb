@@ -122,6 +122,14 @@ module OpenCatan
         @game.current_turn.upgrade(self, parameters.shift)
       when 'choose'
         @game.current_turn.choose(self, parameters.shift)
+      when 'propose'
+        @game.current_turn.propose(self, parameters.shift, parameters.shift, parameters.shift)
+      when 'respond'
+        @game.current_turn.respond(self, parameters.shift)
+      when 'accept'
+        @game.current_turn.accept(self, parameters.shift)
+      when 'cancel'
+        @game.current_turn.cancel(self)
       when 'done'
         @game.current_turn.done
         @development_cards.each do |card| card.set_playable! end
