@@ -23,6 +23,7 @@ module OpenCatan
           row << "OpenCatan::Board::Hex::#{hex[:type]}".constantize.new
           row[offset].set_location(index, offset)
           row[offset].set_number(hex[:number])
+          row[offset].add_trade_hub(hex[:trade])
         end
         board << Row.new(row)
       end
@@ -62,6 +63,9 @@ module OpenCatan
       each_hex do |hex|
         hex.sort_intersections!(self)
         hex.connect_intersections!
+      end
+      each_hex do |hex|
+        hex.create_trade_hubs
       end
       self
     end
@@ -253,11 +257,18 @@ module OpenCatan
       end
     end
 
-    class Harbor
-      def initialize(path, type = :general)
-        @intersections = path.intersections
-        @type = type
+    class TradeHub
+      def initialize(intersection1, intersection2, type = :general)
+        @intersections = []
+        @intersections << intersection1
+        @intersections << intersection2
+        @type = type.to_sym
+
+        @intersections.each do |intersection|
+          intersection.trade_hub = self
+        end
       end
+      attr_reader :type
 
       def to_s
         "{#{@intersections.join('-')}}"
@@ -283,6 +294,7 @@ module OpenCatan
         @paths = []
         @number = rand(12) unless product.nil?
         @robber = false
+        @trade_hubs = []
       end
       attr_reader :location, :intersections, :number
 
@@ -308,6 +320,18 @@ module OpenCatan
 
       def set_number(number)
         @number = number
+      end
+
+      def add_trade_hub(hash)
+        @trade_hubs << hash if hash
+      end
+
+      def create_trade_hubs
+        @trade_hubs.collect! do |hub|
+          TradeHub.new(@intersections[hub[:direction]], 
+                       @intersections[hub[:direction].succ],
+                       hub[:type])
+        end
       end
 
       def distance

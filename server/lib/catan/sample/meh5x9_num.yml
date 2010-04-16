@@ -22,12 +22,18 @@
   - :type: Water
     :number: 
   - :type: Hill
+    :trade: 
+      :type: general
+      :direction: 0
     :number: 3
   - :type: Field
     :number: 9
   - :type: Desert
     :number: 
 - - :type: Mine
+    :trade: 
+      :type: ore
+      :direction: 1
     :number: 5
   - :type: Mountain
     :number: 6
