@@ -196,7 +196,7 @@ module OpenCatan
     def status
       log(current_turn.inspect)
       log(players.collect do |player|
-        "#{"%6s" % player.name}: #{player.resources.inspect}; Hand: #{player.hand_size}"
+        "#{"%6s" % player.name}: #{player.resources.inspect}; Hand: #{player.hand_size}; VPs: #{@victory_points[player]}"
       end)
     end
 
