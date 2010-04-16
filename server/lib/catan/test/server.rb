@@ -36,7 +36,7 @@ class Server < GServer
 
       loop do
         if IO.select([io], nil, nil, 0.5)
-          player.submit_command io.gets.chop
+          player.submit_command *io.gets.chop.split
           prompted = false
         elsif !@message_queue[player].empty?
           io.puts "\r" if prompted
