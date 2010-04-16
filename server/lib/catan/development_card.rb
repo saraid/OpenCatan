@@ -93,13 +93,4 @@ module OpenCatan
       @contents.send(id, *args, &block)
     end
   end
-
-  class RiggedDeck < Deck
-    def initialize
-      super
-      [50, 42, 32, 35, 31, 40].reverse_each do |type|
-        unshift(@contents.detect do |card| card.id == type end)
-      end
-    end
-  end
 end

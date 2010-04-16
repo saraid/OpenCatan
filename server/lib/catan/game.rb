@@ -24,11 +24,6 @@ module OpenCatan
     end
     attr_reader :dice, :deck, :board, :players, :robber
 
-    def rig!
-      @dice = LoadedDice.new
-      @deck = RiggedDeck.new
-    end
-
     state_machine :game_state, :initial => :players_joining do
       event :start_state_machine do transition nil => :players_joining end
       event :start_game do

@@ -116,7 +116,7 @@ module OpenCatan
       def done
         update_status
         raise TurnStateException, @status if @status != 'ok'
-        @current_trade.cancel!
+        @current_trade.cancel! if @current_trade
         @done = true
         @game.status
         @game.advance_player

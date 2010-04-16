@@ -1,7 +1,42 @@
 require 'catan/game'
 
 @game = OpenCatan::Game.new
-@game.rig!
+
+# Rig the game for testing.
+
+module OpenCatan
+  class RiggedDeck < Deck
+    def initialize
+      super
+      [50, 42, 32, 35, 31, 40].reverse_each do |type|
+        unshift(@contents.detect do |card| card.id == type end)
+      end
+    end
+  end
+
+  class LoadedDice < Dice
+    def initialize
+      super
+      @rolls  = [5, 4, 3, 2]
+      @rolls += [9, 6, 5, 9,
+                 8, 12, 4, 6,
+                 8, 8, 8, 10,
+                 6, 8, 6, 6,
+                 8, 8, 6, 6,
+                 7, 3, 2, 12,
+                 12, 12, 12, 12,
+                 12
+                ]
+    end
+    def roll(number = 1, sides = 6)
+      return super if @rolls.empty?
+      @rolls.shift
+    end
+  end
+end
+@game.instance_variable_set :@dice, OpenCatan::LoadedDice.new
+@game.instance_variable_set :@deck, OpenCatan::RiggedDeck.new
+
 np = 4
 colors = ['red', 'orange', 'blue', 'white']
 Array.new(np).each_with_index do |meh, x|
