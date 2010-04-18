@@ -36,6 +36,9 @@ module OpenCatan
         end
       end
     end
+    def serialize_to_board_json
+      collect do |row| row.serialize_to_board_json end
+    end
 
     attr_accessor :longest_row
 
@@ -137,12 +140,20 @@ module OpenCatan
       def initialize
         @hexes = []
         @paths = []
-        @trade_hub = nil
+        @trade_hubs = []
         #@id = self.object_id
         @id = @@counter.next
       end
-      attr_reader :piece, :hexes, :paths, :id
-      attr_accessor :trade_hub
+      attr_reader :piece, :hexes, :paths, :id, :trade_hubs
+
+      def serialize_to_board_json
+        { :id => @id, 
+          :piece => self.piece ? { :type => self.piece.class.to_s.split('::').last,
+                                   :owner => self.piece.owner.serialize_to_board_json
+                               } : nil,
+          :trade_hubs => @trade_hubs.collect do |i| i.serialize_to_board_json if i end
+        }
+      end
 
       # There are some cases where this does not denote actual equivalence.
       # In cases of "outliers", or intersections occupying only one hex,
@@ -265,10 +276,14 @@ module OpenCatan
         @type = type.to_sym
 
         @intersections.each do |intersection|
-          intersection.trade_hub = self
+          intersection.trade_hubs << self
         end
       end
       attr_reader :type
+
+      def serialize_to_board_json
+        { :id => @intersections.join('-'), :type => @type }
+      end
 
       def to_s
         "{#{@intersections.join('-')}}"
@@ -285,6 +300,10 @@ module OpenCatan
           Hex.create_random
         end
       end
+
+      def serialize_to_board_json
+        collect do |hex| hex.serialize_to_board_json end
+      end
     end
 
     class Hex
@@ -300,6 +319,13 @@ module OpenCatan
 
       def serialize_to_yaml
         { :type => type, :number => number }
+      end
+
+      def serialize_to_board_json
+        { :number        => number,
+          :type          => type,
+          :intersections => @intersections.collect { |intersection| intersection.serialize_to_board_json },
+        }
       end
 
       def type

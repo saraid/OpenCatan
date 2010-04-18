@@ -38,6 +38,11 @@ module OpenCatan
       end
     end
 
+    # This is from piece.owner.
+    def serialize_to_board_json
+      @game.players.index(self)
+    end
+
     def hand_size
       @resources.values.inject(0) do |sum, n| sum + n end
     end
