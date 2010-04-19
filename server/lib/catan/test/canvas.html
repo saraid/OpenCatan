@@ -1,0 +1,118 @@
+<html>
+<head>
+  <style type="text/css">
+    canvas { border: solid 5px black; }
+  </style>
+<script type="text/javascript" src="http://127.0.0.1:3000/javascripts/jquery.js"></script>
+<script type="text/javascript">
+var OpenCatan = function() {};
+OpenCatan.Canvas = function(element, board){
+  this.element   = $(element);
+  this.board     = board;
+  this.width     = this.element.width();
+  this.height    = this.element.height();
+  this.hex_width = 30;
+  this.context   = this.element.get(0).getContext('2d');
+
+  board.init_canvas(this);
+};
+OpenCatan.Board = function(json) {
+  var json = JSON.parse(json);
+
+  // Accessors
+  this.hex          = [];
+  this.intersection = {};
+  this.path         = {};
+
+  for(var row=0;row<json.length;row++){
+    this.hex[row] = [];
+    for(var offset=0;offset<json[row].length;offset++){
+      this.hex[row][offset] = new OpenCatan.Board.Hex(this, json[row][offset]);
+    }
+  }
+
+  this.height = this.hex.length;
+  this.width  = this.hex[0].length;
+
+  var self = this;
+  this.foreach_hex = function(proc) {
+    for(var row=0;row<self.hex.length;row++)
+      for(var offset=0;offset<self.hex[row].length;offset++)
+        proc.call(self, self.hex[row][offset]);
+  };
+
+  // Initialize canvas.
+  this.init_canvas = function(canvas){
+    for(var row=0;row<this.hex.length;row++){
+      for(var offset=0;offset<this.hex[row].length;offset++){
+        self.hex[row][offset].init_canvas(canvas, row, offset);
+      }
+    }
+  }
+};
+OpenCatan.Board.Hex = function(board, json){
+  this.type = json.type;
+  this.number = json.number;
+  this.intersections = [];
+  for(var i=0;i<6;i++) this.intersections[i] = new OpenCatan.Board.Intersection(board, json.intersections[i]);
+
+  var self = this;
+  this.init_canvas = function(canvas, row, offset){
+    var this_row = canvas.board.hex[row]
+    var h_mid = (this_row.length % 2 == 0) ? this_row.length / 2 : Math.floor(this_row.length / 2);
+    var h_off = (this_row.length % 2 == 0) ? 0.5 : -1;
+    self.draw_attributes = {
+      'x': (canvas.width / 2) + canvas.hex_width                     * (h_off + (offset - h_mid) * 3),
+      'y': (canvas.height/ 2) + Math.floor(canvas.hex_width * 0.866) * (row - (board.height / 2) - 1)
+    };
+  };
+
+  this.draw = function(canvas){
+    var context = canvas.context;
+    var hex_width = canvas.hex_width;
+    var x = self.draw_attributes.x;
+    var y = self.draw_attributes.y;
+    context.fillStyle = "rgb(100, 100, 100)";
+    context.beginPath();
+    var vertices = [[x + (hex_width / 2)    , y                          ],
+                    [x + (3 * hex_width / 2), y                          ],
+                    [x + (2 * hex_width)    , y + (hex_width * 0.866)],
+                    [x + (3 * hex_width / 2), y + (hex_width * 1.732)],
+                    [x + (hex_width / 2)    , y + (hex_width * 1.732)],
+                    [x                          , y + (hex_width * 0.866)]]
+    context.moveTo(vertices[0][0], vertices[0][1]);
+    for (i = 0; i < 6; i++)
+      context.lineTo(vertices[i][0], vertices[i][1]);
+    context.fill();
+  };
+};
+OpenCatan.Board.Intersection = function(board, json){
+  this.id = json.id;
+  this.piece = json.piece;
+  board.intersection[this.id] = this;
+  this.paths = []
+  for(var i=0;i<json.paths.length;i++){
+    if (board.path[json.paths[i].id])
+      this.paths[i] = board.path[json.paths[i].id];
+    else
+      this.paths[i] = new OpenCatan.Board.Path(board, json.paths[i]);
+  }
+};
+OpenCatan.Board.Path = function(board, json){
+  this.id = json.id;
+  this.piece = json.piece
+  board.path[this.id] = this;
+};
+</script>
+<script type="text/javascript" src="sample.js"></script>
+<script type="text/javascript">
+$(function(){
+  var canvas = new OpenCatan.Canvas("#board", board);
+  board.foreach_hex(function(hex) { hex.draw(canvas); })
+});
+</script>
+</head>
+<body>
+  <canvas id="board" width="500" height="500"></canvas>
+</body>
+</html>

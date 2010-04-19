@@ -151,6 +151,7 @@ module OpenCatan
           :piece => self.piece ? { :type => self.piece.class.to_s.split('::').last,
                                    :owner => self.piece.owner.serialize_to_board_json
                                } : nil,
+          :paths => @paths.collect do |i| i.serialize_to_board_json end,
           :trade_hubs => @trade_hubs.collect do |i| i.serialize_to_board_json if i end
         }
       end
@@ -224,6 +225,14 @@ module OpenCatan
         @intersections << intersection1
         @intersections << intersection2
         @intersections.sort! do |a, b| a.distance <=> b.distance end
+      end
+
+      def serialize_to_board_json
+        { :id => @intersections.join('-'),
+          :piece => self.piece ? { :type => self.piece.class.to_s.split('::').last,
+                                   :owner => self.piece.owner.serialize_to_board_json
+                               } : nil,
+        }
       end
 
       attr_reader :piece
