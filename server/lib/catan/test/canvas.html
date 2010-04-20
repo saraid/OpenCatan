@@ -11,10 +11,36 @@ OpenCatan.Canvas = function(element, board){
   this.board     = board;
   this.width     = this.element.width();
   this.height    = this.element.height();
-  this.hex_width = 30;
+  this.hex_width = 50;
   this.context   = this.element.get(0).getContext('2d');
+  this.h_offset  = 0;
+  this.v_offset  = 0;
+  this.zooming   = false;
 
+  window.open_catan = this;
   board.init_canvas(this);
+  var self = this;
+  this.render = function(){
+    var canvas = self;
+    self.board.foreach_hex(function(hex) { hex.draw(canvas); })
+  };
+
+  // Stuff!
+  this.pan = function(options){
+    self.context.fillStyle = "white";
+    self.context.fillRect(0, 0, self.width, self.height);
+    if (options.horizontal) self.h_offset += parseInt(options.horizontal);
+    if (options.vertical)   self.v_offset += parseInt(options.vertical);
+    self.board.init_canvas(self);
+    self.render();
+  };
+  this.zoom = function(out, amount){
+    self.context.fillStyle = "white";
+    self.context.fillRect(0, 0, self.width, self.height);
+    self.hex_width += out ? -amount : amount;
+    self.board.init_canvas(self);
+    self.render();
+  };
 };
 OpenCatan.Board = function(json) {
   var json = JSON.parse(json);
@@ -62,8 +88,8 @@ OpenCatan.Board.Hex = function(board, json){
     var h_mid = (this_row.length % 2 == 0) ? this_row.length / 2 : Math.floor(this_row.length / 2);
     var h_off = (this_row.length % 2 == 0) ? 0.5 : -1;
     self.draw_attributes = {
-      'x': (canvas.width / 2) + canvas.hex_width                     * (h_off + (offset - h_mid) * 3),
-      'y': (canvas.height/ 2) + Math.floor(canvas.hex_width * 0.866) * (row - (board.height / 2) - 1)
+      'x': (canvas.width / 2) + canvas.hex_width                     * (h_off + (offset - h_mid) * 3)   + canvas.h_offset,
+      'y': (canvas.height/ 2) + Math.floor(canvas.hex_width * 0.866) * (row - (board.height / 2) - 0.5) + canvas.v_offset
     };
   };
 
@@ -72,7 +98,17 @@ OpenCatan.Board.Hex = function(board, json){
     var hex_width = canvas.hex_width;
     var x = self.draw_attributes.x;
     var y = self.draw_attributes.y;
-    context.fillStyle = "rgb(100, 100, 100)";
+    switch(self.type){
+      case 'Desert':   context.fillStyle = "rgb(255, 222, 173)"; break;
+      case 'Forest':   context.fillStyle = "rgb( 34, 139,  34)"; break;
+      case 'Plain':    context.fillStyle = "rgb(  0, 255, 127)"; break;
+      case 'Field':    context.fillStyle = "rgb(255, 223,   0)"; break;
+      case 'Mountain': context.fillStyle = "rgb(112, 128, 144)"; break;
+      case 'Hill':     context.fillStyle = "rgb(233, 116,  81)"; break;
+      case 'Water':    context.fillStyle = "rgb(  0, 127, 255)"; break;
+      case 'Mine':     context.fillStyle = "rgb( 47,  79,  79)"; break;
+      default:         context.fillStyle = "rgb(255, 255, 255)"; break;
+    }
     context.beginPath();
     var vertices = [[x + (hex_width / 2)    , y                          ],
                     [x + (3 * hex_width / 2), y                          ],
@@ -108,11 +144,10 @@ OpenCatan.Board.Path = function(board, json){
 <script type="text/javascript">
 $(function(){
   var canvas = new OpenCatan.Canvas("#board", board);
-  board.foreach_hex(function(hex) { hex.draw(canvas); })
 });
 </script>
 </head>
 <body>
-  <canvas id="board" width="500" height="500"></canvas>
+  <canvas id="board" width="700" height="500"></canvas>
 </body>
 </html>
