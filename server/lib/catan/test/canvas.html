@@ -61,8 +61,10 @@ OpenCatan.Board = function(json) {
   }
   for (var path_id in this.path){
     var intersections = this.path[path_id].id.split('-');
-    for (var i=0;i<2;i++)
-      this.path[path_id].add_intersection(this.intersection[parseInt(intersections[i])]);
+    for (var i=0;i<2;i++){
+      var intersection_id = parseInt(intersections[i]);
+      this.path[path_id].add_intersection(this.intersection[intersection_id]);
+    }
   }
 
   this.height = this.hex.length;
