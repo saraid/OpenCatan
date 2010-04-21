@@ -17,9 +17,36 @@ OpenCatan.Canvas = function(element, board){
   this.v_offset  = 0;
   this.zooming   = false;
 
+  this.origin    = this.element.offset();
+    this.origin.top  += parseInt(this.element.css("borderTopWidth"));
+    this.origin.left += parseInt(this.element.css("borderLeftWidth"));
+
   window.open_catan = this;
   board.init_canvas(this);
+
   var self = this;
+  this.element.mousemove(function(event){
+    self.xy_to_hex(event.pageX-self.origin.left, event.pageY-self.origin.top);
+  });
+  this.xy_to_hex = function(x, y) {
+    var distance = self.hex_width;
+    var result = null;
+    for (var row=0;row<self.board.hex.length;row++) {
+      for (var offset=0;offset<self.board.hex[row].length;offset++) {
+        var hex = self.board.hex[row][offset];
+        var hex_center = { x: hex.draw_attributes.x + self.hex_width,
+                           y: hex.draw_attributes.y + self.hex_width };
+        var this_distance = Math.sqrt(Math.pow(x - hex_center.x, 2) + Math.pow(y - hex_center.y, 2));
+        if (this_distance < distance) {
+          distance = this_distance
+          result = hex;
+        }
+      }
+    }
+
+    return result;
+  }
+
   this.render = function(){
     var canvas = self;
     self.board.foreach_hex(function(hex) { hex.draw(canvas); })
@@ -94,6 +121,8 @@ OpenCatan.Board.Hex = function(board, json){
   this.number = json.number;
   this.intersections = [];
   for(var i=0;i<6;i++) this.intersections[i] = new OpenCatan.Board.Intersection(board, json.intersections[i]);
+  this.trade_hubs = [];
+  for(var i=0;i<json.trade_hubs.length;i++) this.trade_hubs[i] = json.trade_hubs[i];
 
   var self = this;
   this.define_vertices = function(x, y, canvas){
@@ -150,9 +179,10 @@ OpenCatan.Board.Hex = function(board, json){
       context.arc(center.x, center.y, 12, 0, Math.PI*2, true);
       context.fill();
       context.textAlign = "center";
+      context.textBaseline = "middle";
       context.font = "12px Times";
       context.fillStyle = "black";
-      context.fillText(self.number, center.x, center.y + 4);
+      context.fillText(self.number, center.x, center.y);
     }
 
     for (var i=0;i<6;i++) self.intersections[i].draw(canvas);

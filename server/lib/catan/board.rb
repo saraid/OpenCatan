@@ -152,7 +152,6 @@ module OpenCatan
                                    :owner => self.piece.owner.serialize_to_board_json
                                } : nil,
           :paths => @paths.collect do |i| i.serialize_to_board_json end,
-          :trade_hubs => @trade_hubs.collect do |i| i.serialize_to_board_json if i end
         }
       end
 
@@ -278,11 +277,12 @@ module OpenCatan
     end
 
     class TradeHub
-      def initialize(intersection1, intersection2, type = :general)
+      def initialize(intersection1, intersection2, type, raw_data)
         @intersections = []
         @intersections << intersection1
         @intersections << intersection2
         @type = type.to_sym
+        @raw_data = raw_data
 
         @intersections.each do |intersection|
           intersection.trade_hubs << self
@@ -291,7 +291,7 @@ module OpenCatan
       attr_reader :type
 
       def serialize_to_board_json
-        { :id => @intersections.join('-'), :type => @type }
+        @raw_data
       end
 
       def to_s
@@ -334,6 +334,7 @@ module OpenCatan
         { :number        => number,
           :type          => type,
           :intersections => @intersections.collect { |intersection| intersection.serialize_to_board_json },
+          :trade_hubs    => @trade_hubs.collect { |i| i.serialize_to_board_json if i }
         }
       end
 
@@ -365,7 +366,7 @@ module OpenCatan
         @trade_hubs.collect! do |hub|
           TradeHub.new(@intersections[hub[:direction]], 
                        @intersections[hub[:direction].succ],
-                       hub[:type])
+                       hub[:type], hub)
         end
       end
 
