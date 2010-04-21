@@ -333,6 +333,7 @@ module OpenCatan
       def serialize_to_board_json
         { :number        => number,
           :type          => type,
+          :has_robber    => has_robber?,
           :intersections => @intersections.collect { |intersection| intersection.serialize_to_board_json },
           :trade_hubs    => @trade_hubs.collect { |i| i.serialize_to_board_json if i }
         }
@@ -348,6 +349,10 @@ module OpenCatan
 
       def rob!
         @robber = true
+      end
+
+      def unrob!
+        @robber = false
       end
 
       def set_location(row, offset)

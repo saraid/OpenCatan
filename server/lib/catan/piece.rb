@@ -43,6 +43,7 @@ module OpenCatan
       AMOUNT_PER_PLAYER = 0
       attr_reader :location
       def at(hex)
+        @location.unrob! if @location
         @location = hex
       end
     end

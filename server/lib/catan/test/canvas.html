@@ -164,6 +164,7 @@ OpenCatan.Board = function(json) {
 OpenCatan.Board.Hex = function(board, json){
   this.type = json.type;
   this.number = json.number;
+  this.has_robber = json.has_robber;
   this.intersections = [];
   for(var i=0;i<6;i++) this.intersections[i] = new OpenCatan.Board.Intersection(board, json.intersections[i]);
   this.trade_hubs = [];
@@ -264,6 +265,13 @@ OpenCatan.Board.Hex = function(board, json){
         context.fillStyle = "black";
         context.fillText(trade_hub.type == "general" ? "3:1" : "2:1", location.x, location.y + 1);
       }
+    }
+
+    if (self.has_robber){
+      context.fillStyle = "black";
+      context.fillRect(center.x + 10, center.y - 20, 15, 15);
+      context.strokeStyle = "red";
+      context.strokeRect(center.x + 10, center.y - 20, 15, 15);
     }
   };
 };
