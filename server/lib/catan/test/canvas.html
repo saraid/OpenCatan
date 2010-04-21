@@ -26,11 +26,53 @@ OpenCatan.Canvas = function(element, board){
 
   var self = this;
   this.element.mousemove(function(event){
-    self.xy_to_hex(event.pageX-self.origin.left, event.pageY-self.origin.top);
+    for (var i in self.board.intersection) self.board.intersection[i].invisible = true;
+    for (var i in self.board.path) self.board.path[i].invisible = true;
+    self.board.foreach_hex(function(hex) { hex.needs_redraw = true; });
+    self.render();
+    var thing = self.xy_to_object(event.pageX-self.origin.left, event.pageY-self.origin.top);
+    if (thing && thing.invisible != null) {
+      thing.invisible = false;
+      thing.draw(self);
+    }
+  }).click(function(event){
+    var thing = self.xy_to_object(event.pageX-self.origin.left, event.pageY-self.origin.top);
+    if (thing) console.log(thing.id);
   });
-  this.xy_to_hex = function(x, y) {
-    var distance = self.hex_width;
+  this.xy_to_object = function(x, y){
     var result = null;
+    var distance;
+
+    // Intersections
+    distance = self.hex_width / 8;
+    for (var i in self.board.intersection){
+      var intersection = self.board.intersection[i];
+      var center = { x: intersection.draw_attributes.x,
+                     y: intersection.draw_attributes.y };
+      var this_distance = Math.sqrt(Math.pow(x - center.x, 2) + Math.pow(y - center.y, 2));
+      if (this_distance < distance) {
+        distance = this_distance
+        result = intersection;
+      }
+    }
+    if (result) return result;
+
+    // Paths
+    distance = self.hex_width * 0.325;
+    for (var i in self.board.path){
+      var path = self.board.path[i];
+      var center = { x: path.draw_attributes.x,
+                     y: path.draw_attributes.y };
+      var this_distance = Math.sqrt(Math.pow(x - center.x, 2) + Math.pow(y - center.y, 2));
+      if (this_distance < distance) {
+        distance = this_distance
+        result = path;
+      }
+    }
+    if (result) return result;
+
+    // Hexes
+    distance = self.hex_width;
     for (var row=0;row<self.board.hex.length;row++) {
       for (var offset=0;offset<self.board.hex[row].length;offset++) {
         var hex = self.board.hex[row][offset];
@@ -49,10 +91,13 @@ OpenCatan.Canvas = function(element, board){
 
   this.render = function(){
     var canvas = self;
-    self.board.foreach_hex(function(hex) { hex.draw(canvas); })
     for(var path_id in self.board.path){
       self.board.path[path_id].draw(self);
     }
+    for(var intersection_id in self.board.intersection){
+      self.board.intersection[intersection_id].draw(self);
+    }
+    self.board.foreach_hex(function(hex) { hex.draw(canvas); })
   };
 
   // Stuff!
@@ -140,7 +185,8 @@ OpenCatan.Board.Hex = function(board, json){
     var h_off = (this_row.length % 2 == 0) ? 0.5 : -1;
     self.draw_attributes = {
       'x': (canvas.width / 2) + canvas.hex_width                     * (h_off + (offset - h_mid) * 3)   + canvas.h_offset,
-      'y': (canvas.height/ 2) + Math.floor(canvas.hex_width * 0.866) * (row - (board.height / 2) - 0.5) + canvas.v_offset
+      'y': (canvas.height/ 2) + Math.floor(canvas.hex_width * 0.866) * (row - (board.height / 2) - 0.5) + canvas.v_offset,
+      'needs_redraw': true
     };
 
     var vertices = self.define_vertices(self.draw_attributes.x, self.draw_attributes.y, canvas);
@@ -150,6 +196,9 @@ OpenCatan.Board.Hex = function(board, json){
   };
 
   this.draw = function(canvas){
+    //if (!self.draw_attributes.needs_redraw) return;
+    self.draw_attributes.needs_redraw = false;
+
     var context = canvas.context;
     var hex_width = canvas.hex_width;
     var x = self.draw_attributes.x;
@@ -216,8 +265,6 @@ OpenCatan.Board.Hex = function(board, json){
         context.fillText(trade_hub.type == "general" ? "3:1" : "2:1", location.x, location.y + 1);
       }
     }
-
-    for (var i=0;i<6;i++) self.intersections[i].draw(canvas);
   };
 };
 OpenCatan.Board.Intersection = function(board, json){
@@ -237,7 +284,7 @@ OpenCatan.Board.Intersection = function(board, json){
     self.draw_attributes = { 'x': x, 'y': y };
   };
 
-  this.invisible = false;
+  this.invisible = true;
   this.draw = function(canvas){
     var x = self.draw_attributes.x;
     var y = self.draw_attributes.y;
@@ -254,7 +301,7 @@ OpenCatan.Board.Path = function(board, json){
   this.piece = json.piece
   this.intersections = [];
   board.path[this.id] = this;
-  this.invisible = false;
+  this.invisible = true;
 
   var self = this;
   this.add_intersection = function(intersection){
