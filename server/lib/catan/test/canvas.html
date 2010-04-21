@@ -172,8 +172,8 @@ OpenCatan.Board.Hex = function(board, json){
       context.lineTo(vertices[i][0], vertices[i][1]);
     context.fill();
 
+    var center = { 'x': x + hex_width, 'y': y + Math.floor(0.866 * hex_width) };
     if (self.number){
-      var center = { 'x': x + hex_width, 'y': y + Math.floor(0.866 * hex_width) };
       context.fillStyle = "white";
       context.beginPath();
       context.arc(center.x, center.y, 12, 0, Math.PI*2, true);
@@ -182,7 +182,39 @@ OpenCatan.Board.Hex = function(board, json){
       context.textBaseline = "middle";
       context.font = "12px Times";
       context.fillStyle = "black";
-      context.fillText(self.number, center.x, center.y);
+      context.fillText(self.number, center.x, center.y + 1);
+    }
+
+    if (self.trade_hubs.length > 0){
+      for(var i=0;i<self.trade_hubs.length;i++){
+        var trade_hub = self.trade_hubs[i];
+        var angle     = Math.PI*(2*trade_hub.direction-3)/6;
+        var distance  = Math.floor(0.5 * hex_width) + hex_width;
+        var location  = { x: center.x + distance * Math.cos(angle),
+                          y: center.y + distance * Math.sin(angle) };
+        var intersections = [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 0]][trade_hub.direction];
+        context.beginPath();
+        context.moveTo(location.x, location.y);
+        context.lineTo(self.intersections[intersections[0]].draw_attributes.x, self.intersections[intersections[0]].draw_attributes.y);
+        context.stroke();
+        context.moveTo(location.x, location.y);
+        context.lineTo(self.intersections[intersections[1]].draw_attributes.x, self.intersections[intersections[1]].draw_attributes.y);
+        context.stroke();
+        switch(trade_hub.type){
+          case 'wood':  context.fillStyle = "rgb( 34, 139,  34)"; break;
+          case 'clay':  context.fillStyle = "rgb(233, 116,  81)"; break;
+          case 'wheat': context.fillStyle = "rgb(255, 223,   0)"; break;
+          case 'sheep': context.fillStyle = "rgb(  0, 255, 127)"; break;
+          case 'ore':   context.fillStyle = "rgb(112, 128, 144)"; break;
+          default:      context.fillStyle = "white";
+        }
+        context.beginPath();
+        context.arc(location.x, location.y, 12, 0, Math.PI*2, true);
+        context.fill();
+        context.stroke();
+        context.fillStyle = "black";
+        context.fillText(trade_hub.type == "general" ? "3:1" : "2:1", location.x, location.y + 1);
+      }
     }
 
     for (var i=0;i<6;i++) self.intersections[i].draw(canvas);
