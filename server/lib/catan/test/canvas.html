@@ -98,6 +98,7 @@ OpenCatan.Canvas = function(element, board){
       self.board.intersection[intersection_id].draw(self);
     }
     self.board.foreach_hex(function(hex) { hex.draw(canvas); })
+    for (var i=0;i<self.board.pieces.length;i++) self.board.pieces[i].draw_piece(self);
   };
 
   // Stuff!
@@ -121,6 +122,7 @@ OpenCatan.Board = function(json) {
   var json = JSON.parse(json);
 
   // Accessors
+  this.pieces       = [];
   this.hex          = [];
   this.intersection = {};
   this.path         = {};
@@ -286,6 +288,7 @@ OpenCatan.Board.Intersection = function(board, json){
     else
       this.paths[i] = new OpenCatan.Board.Path(board, json.paths[i]);
   }
+  if (this.piece) board.pieces.push(this);
 
   var self = this;
   this.init_canvas = function(x, y, canvas){
@@ -294,14 +297,35 @@ OpenCatan.Board.Intersection = function(board, json){
 
   this.invisible = true;
   this.draw = function(canvas){
+    if (self.piece) return;
+    var context = canvas.context;
     var x = self.draw_attributes.x;
     var y = self.draw_attributes.y;
-    canvas.context.fillStyle = !self.invisible ? "black" : "white";
-    canvas.context.beginPath();
+    context.fillStyle = !self.invisible ? "black" : "white";
+    context.beginPath();
     var size = canvas.hex_width / 8;
     if (self.invisible) size+=2;
-    canvas.context.arc(x, y, size, 0, Math.PI*2, true);
-    canvas.context.fill();
+    context.arc(x, y, size, 0, Math.PI*2, true);
+    context.fill();
+  };
+  this.draw_piece = function(canvas){
+    var context = canvas.context;
+    var x = self.draw_attributes.x;
+    var y = self.draw_attributes.y;
+    if (self.piece){
+      context.fillStyle = players[self.piece.owner];
+      context.strokeStyle = "black";
+      context.fillRect(x - 5, y - 5, 10, 10);
+      context.strokeRect(x - 5, y - 5, 10, 10);
+      if (self.piece.type == "City"){
+        context.beginPath();
+        context.moveTo(x - 5, y - 5);
+        context.lineTo(x    , y - 9);
+        context.lineTo(x + 5, y - 5);
+        context.fill();
+        context.stroke();
+      }
+    }
   };
 };
 OpenCatan.Board.Path = function(board, json){
@@ -309,6 +333,7 @@ OpenCatan.Board.Path = function(board, json){
   this.piece = json.piece
   this.intersections = [];
   board.path[this.id] = this;
+  if (this.piece) board.pieces.push(this);
   this.invisible = true;
 
   var self = this;
@@ -333,6 +358,7 @@ OpenCatan.Board.Path = function(board, json){
   };
 
   this.draw = function(canvas){
+    if (self.piece) return;
     var context = canvas.context;
     var x     = self.draw_attributes.x;
     var y     = self.draw_attributes.y;
@@ -356,12 +382,35 @@ OpenCatan.Board.Path = function(board, json){
     context.fill();
     context.restore();
   };
+  this.draw_piece = function(canvas){
+    var context = canvas.context;
+    var x     = self.draw_attributes.x;
+    var y     = self.draw_attributes.y;
+    var angle = self.draw_attributes.angle;
+    context.fillStyle = players[self.piece.owner];
+    context.strokeStyle = "black";
+    var path_width  = canvas.hex_width / 10;
+    var path_length = canvas.hex_width * 0.75;
+
+    context.save();
+    context.translate(x, y);
+    context.rotate(angle);
+    context.beginPath();
+    context.moveTo(-path_length/2, -path_width/2);
+    context.lineTo( path_length/2, -path_width/2);
+    context.lineTo( path_length/2,  path_width/2);
+    context.lineTo(-path_length/2,  path_width/2);
+    context.fill();
+    context.stroke();
+    context.restore();
+  };
 };
 </script>
 <script type="text/javascript" src="sample.js"></script>
 <script type="text/javascript">
 $(function(){
   var canvas = new OpenCatan.Canvas("#board", board);
+  players = ["red", "orange", "blue", "white"];
 });
 </script>
 </head>
