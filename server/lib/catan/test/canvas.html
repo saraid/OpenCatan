@@ -319,10 +319,11 @@ OpenCatan.Board.Intersection = function(board, json){
       context.strokeRect(x - 5, y - 5, 10, 10);
       if (self.piece.type == "City"){
         context.beginPath();
-        context.moveTo(x - 5, y - 5);
-        context.lineTo(x    , y - 9);
-        context.lineTo(x + 5, y - 5);
-        context.fill();
+        context.arc(x, y, 8, 0, Math.PI*2, true);
+        //context.moveTo(x - 5, y - 5);
+        //context.lineTo(x    , y - 9);
+        //context.lineTo(x + 5, y - 5);
+        //context.fill();
         context.stroke();
       }
     }
