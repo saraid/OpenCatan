@@ -1,21 +1,27 @@
-require 'catan/board'
-require 'catan/player'
-require 'random_data'
+require 'catan/game'
 
 class GameController < ApplicationController
   helper :all # include all helpers, all the time
   #protect_from_forgery # See ActionController::RequestForgeryProtection for details
 
   def board
-    @players = Array.new(3)
-    @players.collect! { |player| player = Player.new(Random.firstname, Random.color) }
-    @board = Board.new(params[:id])
+    @game = create_or_find_game(params[:id])
+    save
+    @foo = @game.board.serialize_to_board_json
     render :action => 'board'
   end
 
-  def debug
-    @board = Board.new(params[:id])
-    render :text => @board.instance_variable_get(:@hex_store).hexes.length
+  private
+  def create_or_find_game(id)
+    @game = if id
+      File.open("data/#{id}.catan", File::RDONLY) do |f| Marshal.load(f) end
+    else
+      OpenCatan::Game.new
+    end
+  end
+
+  def save
+    File.open("data/#{@game.id}.catan", File::CREAT|File::WRONLY) do |f| Marshal.dump(@game, f) end
   end
 end
 

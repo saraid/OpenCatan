@@ -20,72 +20,19 @@
   }
 </style>
 <script type="text/javascript" src="/javascripts/jquery.js"></script>
-<script type="text/javascript" src="/javascripts/board.js?<%= rand(100000) %>"></script>
+<script type="text/javascript" src="/javascripts/open_catan/renderer.js"></script>
 <script type="text/javascript">
-  $(document).ready(function() {
-    <% 
-      vertical_padding = 25 
-      hex_size = (params[:hex_size] || 40).to_i
-      canvas_width = hex_size*4*(@board.hex_store.rows.max { |a,b| a.length <=> b.length }.length) - (hex_size * 3)
-      x_offset = hex_size * 3 / 2
-      canvas_height = (vertical_padding * 2) + (hex_size * 1.732).floor*((@board.hex_store.rows.length + 1) / 2)
-    -%>
-    <% @board.hex_store.rows.each_with_index do |row, row_index| 
-         row.each_with_index do |hex, offset| 
-    -%>
-    Catan.State.add_hex([<%= Catan::HEX_TYPES[hex.type][:color].join(',') %>],
-                        <%= hex.number %>, "<%= hex.type %>",
-                        <%= hex.row %>, <%= hex.offset %>);
-    <%   end
-       end 
-    -%>
-    <% 
-        rows = @board.intersection_array
-        row = 0
-        rows.collect! { |length| Array.new(length/2, 0) }
-        rows.each_with_index do |rowN, row_index|
-          push = row_index % 2 == 0 ? 1 : 2
-          step = 0
-          rowN.reverse.each_with_index do |num, index|
-            rowN[rowN.length-index-1] = push
-            step = index % 2 == 0 ? 2 : 4 if row_index % 2 == 1
-            step = index % 2 == 1 ? 2 : 4 if row_index % 2 == 0
-            push += step
-          end
-          rows[row_index] = rowN + rowN.reverse
-        end
--%>
-    Catan.Intersection.offset_pattern = [[<%= rows.collect { |rowasdfasdf| rowasdfasdf.join(',') }.join('],[') %>]];
-    <%
-        @board.intersections.each do |intersection|
-    -%>
-    Catan.State.add_intersection(<%= intersection.identifier %>, <%= intersection.row %>, <%= intersection.col %>,
-                                 [<%= intersection.hexes.collect { |hex| "[#{hex.row},#{hex.offset}]" }.join(',') %>]);
-    <% end -%>
-    <% @board.paths.each do |path| -%>
-    Catan.State.add_path([<%= path.intersections.collect { |i| i.identifier }.join(',') %>]);
-    <% end -%>
-    Catan.Draw.init(<%= hex_size %>, { top: <%= vertical_padding %>, left: <%= x_offset %> });
+  $(function(){
+    var board = new OpenCatan.Board("<%= @foo.to_json.gsub(/"/, "\\\"") %>");
+    var canvas = new OpenCatan.Canvas("#board", board);
+    players = ["red", "orange", "blue", "white"];
+    canvas.render();
   });
 </script>
 </head>
 <body>
 <div id="container">
-  <canvas id="board" width="<%= canvas_width %>" height="<%= canvas_height %>"></canvas>
-  <div class="module">
-    <h3>Players:</h3>
-    <ul>
-      <% @players.each do |player| %>
-      <li><%= player.name %>: <%= player.color %></li>
-      <% end %>
-
-      <br />
-      <br />
-      <br />
-      <button onclick="Catan.Draw.zoom(true, 5)">Zoom In</button>
-      <button onclick="Catan.Draw.zoom(false, 5)">Zoom Out</button>
-    </ul>
-  </div>
+  <canvas id="board" width="<%= 750 %>" height="<%= 500 %>"></canvas>
   <div style="clear: both;"> </div>
 </div>
 </body>
