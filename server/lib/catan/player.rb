@@ -138,6 +138,8 @@ module OpenCatan
       when 'done'
         @game.current_turn.done
         @development_cards.each do |card| card.set_playable! end
+      else
+        raise NoMethodError, "#{action} is not a known command"
       end
       @game.current_turn
     end
