@@ -1,8 +1,9 @@
 require 'catan/game'
 
 class GameController < ApplicationController
-  helper :all # include all helpers, all the time
-  #protect_from_forgery # See ActionController::RequestForgeryProtection for details
+
+  # This is a hack. Ability to choose color comes later.
+  COLORS = ["red", "orange", "blue", "white"]
 
   before_filter :create_or_find_game
   after_filter  :save
@@ -12,7 +13,18 @@ class GameController < ApplicationController
     render :action => 'board'
   end
 
+  def join
+    return unless logged_in?
+    user = User.find_by_username(session[:user])
+    OpenCatan::Player.new(user.username, COLORS[@game.players.length]).join_game(@game)
+    render :text => @game.players.length
+  end
+
   def method_missing(id, *args, &block)
+    begin
+    rescue NoMethodError
+      super
+    end
   end
 
   private

@@ -1,0 +1,6 @@
+<form method="post" action="<%= url_for %>">
+<label for="username">Username:</label> <input id="username" name="username" type="text"><br />
+<label for="password">Password:</label> <input id="password" name="password" type="password"><br />
+<input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>" />
+<input type="submit" />
+</form>

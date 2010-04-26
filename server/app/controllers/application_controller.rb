@@ -7,4 +7,9 @@ class ApplicationController < ActionController::Base
 
   # Scrub sensitive parameters from your log
   # filter_parameter_logging :password
+
+  def logged_in?
+    session[:user].present?
+  end
+  helper_method :logged_in?
 end

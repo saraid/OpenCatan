@@ -12,6 +12,7 @@
   }
   canvas { 
     border: solid 5px black; 
+    margin-left: 20px;
     /*float: left;*/
   }
   div.module {
@@ -32,7 +33,10 @@
 </head>
 <body>
 <div id="container">
+  <%= logged_in?() ? "Hi, #{session[:user]}" : "You should log in." %>
   <canvas id="board" width="<%= 750 %>" height="<%= 500 %>"></canvas>
+  <h3>Players:</h3>
+  <ul><% @game.players.each do |player| -%><li><%= player.name %></li><% end -%></ul>
   <div style="clear: both;"> </div>
 </div>
 </body>
