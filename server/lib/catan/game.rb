@@ -71,7 +71,7 @@ module OpenCatan
     end
 
     def turn_order?
-      if game_actions.length == 4
+      if game_actions.length == @players.length
         rolls = game_actions.collect { |roll_action| roll_action.roll }
         @player_pointer = rolls.index rolls.max
       end

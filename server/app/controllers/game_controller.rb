@@ -22,6 +22,8 @@ class GameController < ApplicationController
 
   def start
     return unless @game.players.index(@game.find_player_by_name(session[:user])).zero?
+    @game.start_game
+    redirect_to :action => :index, :id => params[:id]
   end
 
   def status
@@ -35,9 +37,11 @@ class GameController < ApplicationController
   def method_missing(id, *args, &block)
     begin
       @game.find_player_by_name(session[:user]).submit_command id, *params[:args]
-      render :text => @game.current_turn.inspect.to_json
-    rescue NoMethodError
-      super
+      @game.current_turn
+      #render :text => @game.current_turn.inspect.to_json
+      redirect_to :action => :index, :id => params[:id]
+    rescue NoMethodError => e
+      raise e
     end
   end
 

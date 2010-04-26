@@ -7,12 +7,13 @@
   }
   #container {
     margin: 0 auto;
-    width: 800px;
+    width: 760px;
     background-color: white;
+    padding-left: 20px;
+    padding-right: 20px;
   }
   canvas { 
     border: solid 5px black; 
-    margin-left: 20px;
     /*float: left;*/
   }
   div.module {
@@ -35,6 +36,7 @@
 <div id="container">
   <%= logged_in?() ? "Hi, #{session[:user]}" : "You should log in." %>
   <canvas id="board" width="<%= 750 %>" height="<%= 500 %>"></canvas>
+  <div id="status">Game Status: <%= @game.game_state.humanize %></div>
   <h3>Players:</h3>
   <ul><% @game.players.each do |player| -%><li><%= player.name %></li><% end -%></ul>
   <div style="clear: both;"> </div>

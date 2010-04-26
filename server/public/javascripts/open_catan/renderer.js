@@ -35,8 +35,8 @@ OpenCatan.Canvas = function(element, board){
     var thing = self.xy_to_object(event.pageX-self.origin.left, event.pageY-self.origin.top);
     if (thing) {
       if (thing instanceof OpenCatan.Board.Hex) console.log("Hex", thing.id);
-      if (thing instanceof OpenCatan.Board.Intersection) console.log("Intersection", thing.id);
-      if (thing instanceof OpenCatan.Board.Path) console.log("Path", thing.id);
+      if (thing instanceof OpenCatan.Board.Intersection) window.location.href = window.location.href + "/place/settlement/" + thing.id;
+      if (thing instanceof OpenCatan.Board.Path) window.location.href = window.location.href + "/place/road/" + thing.id;
     }
   });
   this.xy_to_object = function(x, y){
