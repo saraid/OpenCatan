@@ -102,6 +102,7 @@ module OpenCatan
     end
 
     def advance_player
+      reverse_pointer and return if game_state == 'placing_settlements_in_reverse'
       @player_pointer = @player_pointer.succ
       @player_pointer = 0 if @player_pointer == @players.length
       @turns << Player::Turn.new(self) if @turns

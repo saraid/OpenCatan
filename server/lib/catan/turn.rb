@@ -299,6 +299,16 @@ module OpenCatan
     end
     attr_reader :setup_methods
 
+    def place_road(*args)
+      @placeholder_turn.place_road(*args)
+      @game.advance_player
+    end
+
+    def place_boat(*args)
+      @placeholder_turn.place_boat(*args)
+      @game.advance_player
+    end
+
     def method_missing(id, *args, &block)
       if @setup_methods.keys.include? id
         @setup_methods[id] += 1 if @setup_methods[id]
