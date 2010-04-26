@@ -207,6 +207,7 @@ OpenCatan.Board.Hex = function(board, json){
     var hex_width = canvas.hex_width;
     var x = self.draw_attributes.x;
     var y = self.draw_attributes.y;
+    var img = null;
     switch(self.type){
       case 'Desert':   context.fillStyle = "rgb(255, 222, 173)"; break;
       case 'Forest':   context.fillStyle = "rgb( 34, 139,  34)"; img = OpenCatan.Board.Hex.Image.Forest; break;
@@ -218,14 +219,16 @@ OpenCatan.Board.Hex = function(board, json){
       case 'Mine':     context.fillStyle = "rgb( 47,  79,  79)"; break;
       default:         context.fillStyle = "rgb(255, 255, 255)"; break;
     }
-    if (self.type != "Forest"){
+    if (img) {
+      context.drawImage(img, x - 1, y - 1, 102, 88); 
+    } else {
       context.beginPath();
       var vertices = self.define_vertices(x, y, canvas);
       context.moveTo(vertices[0][0], vertices[0][1]);
       for (i = 0; i < 6; i++)
         context.lineTo(vertices[i][0], vertices[i][1]);
       context.fill();
-    } else { context.drawImage(img, x - 1, y - 1, 102, 88); }
+    }
 
     var center = { 'x': x + hex_width, 'y': y + Math.floor(0.866 * hex_width) };
     if (self.number){
