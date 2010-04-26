@@ -9,6 +9,7 @@ class GameController < ApplicationController
   after_filter  :save
 
   def index
+    redirect_to :controller => :game, :id => @game.id and return if @new_game
     @foo = @game.board.serialize_to_board_json
     render :action => 'board'
   end
@@ -32,6 +33,7 @@ class GameController < ApplicationController
     @game = if params[:id]
       File.open("data/#{params[:id]}.catan", File::RDONLY) do |f| Marshal.load(f) end
     else
+      @new_game = true
       OpenCatan::Game.new
     end
   end
