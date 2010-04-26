@@ -92,7 +92,7 @@ module OpenCatan
 
     def current_turn
       return @turns.last if game_state == 'normal_play'
-      setup and return @setup_turn || @setup_turn = SetupTurn.new(self)
+      setup and return @setup_turn ||= SetupTurn.new(self)
     end
 
     def advance_player
