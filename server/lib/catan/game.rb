@@ -21,10 +21,12 @@ module OpenCatan
       @largest_army = nil
 
       @robber = Piece::Robber.new
+      @victory_points = {}
 
       start_state_machine # Why is the state_machine not working!? I don't know!
     end
     attr_reader :id, :dice, :deck, :board, :players, :robber
+    attr_reader :victory_points
 
     state_machine :game_state, :initial => :players_joining do
       event :start_state_machine do transition nil => :players_joining end

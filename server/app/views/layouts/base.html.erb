@@ -1,8 +1,57 @@
 <html>
 <head>
 <title>OpenCatan</title>
+<style type="text/css">
+  body {
+    background-color: #eee;
+  }
+  #container {
+    margin: 0 auto;
+    width: 760px;
+    background-color: white;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  canvas { 
+    border: solid 5px black; 
+    /*float: left;*/
+  }
+  div.module {
+    float: left;
+    margin-left: 10px;
+  }
+  #status {
+    font-variant: small-caps;
+    font-size: 13px;
+    padding-left: 10px;
+    padding-top:   5px;
+    border: solid 1px black;
+  }
+  th {
+    font-variant: small-caps;
+  }
+  tr td {
+    text-align: left;
+  }
+  tr td + td {
+    text-align: right;
+  }
+</style>
+<script type="text/javascript" src="/javascripts/jquery.js"></script>
+<% (@javascripts || []).each do |javascript| -%><script type="text/javascript" src="/javascripts/<%= javascript.to_s %>.js"></script><% end %>
+<script type="text/javascript">
+$(function(){
+<% (@onloads || []).each do |block| -%><%= block %>meh<% end -%>
+});
+</script>
 </head>
 <body>
+  <div id="container">
+  <div id="header">
+    OpenCatan (v0.001)
+    <div style="float: right;"><%= logged_in?() ? "Logged in as <strong>#{session[:user]}</strong>" : "You should log in." %></div>
+  </div>
   <%= yield %>
+  </div>
 </body>
 </html>

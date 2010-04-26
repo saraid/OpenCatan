@@ -1,45 +1,21 @@
-<html>
-<head>
-<title>OpenCatan: <%= params[:id] %></title>
-<style type="text/css">
-  body {
-    background-color: #eee;
-  }
-  #container {
-    margin: 0 auto;
-    width: 760px;
-    background-color: white;
-    padding-left: 20px;
-    padding-right: 20px;
-  }
-  canvas { 
-    border: solid 5px black; 
-    /*float: left;*/
-  }
-  div.module {
-    float: left;
-    margin-left: 10px;
-  }
-</style>
-<script type="text/javascript" src="/javascripts/jquery.js"></script>
-<script type="text/javascript" src="/javascripts/open_catan/renderer.js"></script>
-<script type="text/javascript">
-  $(function(){
-    var board = new OpenCatan.Board("<%= @foo.to_json.gsub(/"/, "\\\"") %>");
-    var canvas = new OpenCatan.Canvas("#board", board);
-    players = ["red", "orange", "blue", "white"];
-    canvas.render();
-  });
-</script>
-</head>
-<body>
-<div id="container">
-  <%= logged_in?() ? "Hi, #{session[:user]}" : "You should log in." %>
-  <canvas id="board" width="<%= 750 %>" height="<%= 500 %>"></canvas>
-  <div id="status">Game Status: <%= @game.game_state.humanize %></div>
-  <h3>Players:</h3>
-  <ul><% @game.players.each do |player| -%><li><%= player.name %></li><% end -%></ul>
-  <div style="clear: both;"> </div>
-</div>
-</body>
-</html>
+<% include_javascript 'open_catan/renderer' -%>
+<% onload do -%>
+  var board = new OpenCatan.Board("<%= @foo.to_json.gsub(/"/, "\\\"") %>");
+  var canvas = new OpenCatan.Canvas("#board", board);
+  players = ["red", "orange", "blue", "white"];
+  canvas.render();
+<% end -%>
+
+<canvas id="board" width="<%= 750 %>" height="<%= 500 %>"></canvas>
+<div id="status">Game Status: <%= @game.game_state.humanize %></div>
+<table>
+<tr><th>Player</th><th>VPs</th><th>Resources</th></tr>
+<% @game.players.each do |player| -%>
+<tr>
+<td><%= player.name %></td>
+<td><%= @game.victory_points[player] || 0 %></td>
+<td><%= player.hand_size %></td>
+</tr>
+<% end -%>
+</table>
+<div style="clear: both;"> </div>

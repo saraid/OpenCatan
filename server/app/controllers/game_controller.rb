@@ -11,7 +11,7 @@ class GameController < ApplicationController
 
   def index
     @foo = @game.board.serialize_to_board_json
-    render :action => 'board'
+    render :action => 'board', :layout => 'base'
   end
 
   def join
