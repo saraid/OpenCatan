@@ -1,6 +1,8 @@
 require 'digest/sha1'
 
 class UserController < ApplicationController
+  layout 'base'
+
   def create
     create_user and return if request.post?    
     render :action => 'index'
@@ -9,6 +11,11 @@ class UserController < ApplicationController
   def login
     login_user and return if request.post?    
     render :action => 'index'
+  end
+
+  def logout
+    session[:user] = nil
+    render :text => logged_in?
   end
 
   private

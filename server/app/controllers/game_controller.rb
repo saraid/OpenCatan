@@ -6,6 +6,7 @@ class GameController < ApplicationController
   COLORS = ["red", "orange", "blue", "white"]
 
   before_filter :create_or_find_game
+  before_filter :require_log_in, :except => :index
   after_filter  :save
 
   def index
@@ -15,10 +16,18 @@ class GameController < ApplicationController
   end
 
   def join
-    return unless logged_in?
     user = User.find_by_username(session[:user])
     OpenCatan::Player.new(user.username, COLORS[@game.players.length]).join_game(@game)
+    # Really ought to save this relationship in the database to allow for multiple games in progress
     render :text => @game.players.length
+  end
+
+  def status
+    render :text => { :state => @game.game_state, :turn => @game.current_turn.inspect.to_s }.to_json
+  end
+
+  def ping
+    render :text => "blah"
   end
 
   def method_missing(id, *args, &block)

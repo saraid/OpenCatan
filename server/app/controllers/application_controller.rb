@@ -12,4 +12,8 @@ class ApplicationController < ActionController::Base
     session[:user].present?
   end
   helper_method :logged_in?
+
+  def require_log_in
+    redirect_to :controller => :user, :action => :login unless logged_in?
+  end
 end
