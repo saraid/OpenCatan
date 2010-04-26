@@ -10,7 +10,6 @@ class GameController < ApplicationController
   after_filter  :save
 
   def index
-    redirect_to :controller => :game, :id => @game.id and return if @new_game
     @foo = @game.board.serialize_to_board_json
     render :action => 'board'
   end
@@ -49,10 +48,10 @@ class GameController < ApplicationController
   def create_or_find_game
     @game = File.open("data/#{params[:id]}.catan", File::RDONLY) do |f| Marshal.load(f) end if params[:id]
     if @game.nil?
-      require_log_in
-      @new_game = true
+      redirect_to :controller => :user, :action => :login and return unless logged_in?
       @game = OpenCatan::Game.new
       join_game 
+      redirect_to :controller => :game, :id => @game.id
     end
   end
 
