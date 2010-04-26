@@ -16,10 +16,12 @@ class GameController < ApplicationController
   end
 
   def join
-    user = User.find_by_username(session[:user])
-    OpenCatan::Player.new(user.username, COLORS[@game.players.length]).join_game(@game)
-    # Really ought to save this relationship in the database to allow for multiple games in progress
+    join_game
     render :text => @game.players.length
+  end
+
+  def start
+    return unless @game.players.index(@game.find_player_by_name(session[:user])).zero?
   end
 
   def status
@@ -32,6 +34,8 @@ class GameController < ApplicationController
 
   def method_missing(id, *args, &block)
     begin
+      @game.find_player_by_name(session[:user]).submit_command id, *params[:args]
+      render :text => @game.current_turn.inspect.to_json
     rescue NoMethodError
       super
     end
@@ -39,16 +43,23 @@ class GameController < ApplicationController
 
   private
   def create_or_find_game
-    @game = if params[:id]
-      File.open("data/#{params[:id]}.catan", File::RDONLY) do |f| Marshal.load(f) end
-    else
+    @game = File.open("data/#{params[:id]}.catan", File::RDONLY) do |f| Marshal.load(f) end if params[:id]
+    if @game.nil?
+      require_log_in
       @new_game = true
-      OpenCatan::Game.new
+      @game = OpenCatan::Game.new
+      join_game 
     end
   end
 
   def save
     File.open("data/#{@game.id}.catan", File::CREAT|File::WRONLY) do |f| Marshal.dump(@game, f) end
+  end
+
+  def join_game
+    user = User.find_by_username(session[:user])
+    OpenCatan::Player.new(user.username, COLORS[@game.players.length]).join_game(@game)
+    # Really ought to save this relationship in the database to allow for multiple games in progress
   end
 end
 

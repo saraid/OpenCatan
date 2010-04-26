@@ -95,6 +95,10 @@ module OpenCatan
       setup and return @setup_turn ||= SetupTurn.new(self)
     end
 
+    def find_player_by_name(name)
+      @players.detect do |player| player.name == name end
+    end
+
     def advance_player
       @player_pointer = @player_pointer.succ
       @player_pointer = 0 if @player_pointer == @players.length
