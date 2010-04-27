@@ -297,6 +297,7 @@ module OpenCatan
       @game = game
       @placeholder_turn = Player::Turn.new(game)
       @setup_methods = {:roll_dice => [], :place_settlement => 0, :place_road => 0, :spend_gold => nil}
+      @last_action = {}
     end
     attr_reader :setup_methods
 
@@ -314,6 +315,7 @@ module OpenCatan
     def place_settlement(*args)
       player = args.first
       raise OpenCatanException, "Not your turn" unless player == @game.current_player
+      raise OpenCatanException, "Now place a road or boat" if @last_action[:action] == :place_settlement
       @setup_methods[:place_settlement] += 1
       @placeholder_turn.place_settlement(*args)
       @last_action = { :player => player, :action => :place_settlement }
