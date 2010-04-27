@@ -11,6 +11,7 @@ class GameController < ApplicationController
 
   def index
     @foo = @game.board.serialize_to_board_json
+    @player = @game.find_player_by_name(session[:user])
     render :action => 'board', :layout => 'base'
   end
 
@@ -36,6 +37,7 @@ class GameController < ApplicationController
 
   def method_missing(id, *args, &block)
     begin
+      params[:args].collect! do |x| URI.unescape x end
       @game.find_player_by_name(session[:user]).submit_command id, *params[:args]
       @game.current_turn
       #render :text => @game.current_turn.inspect.to_json
