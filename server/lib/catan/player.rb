@@ -5,7 +5,7 @@ require 'catan/turn'
 module OpenCatan
   class Player
 
-    attr_reader   :name, :color, :controls_trade_hub_for, :resources
+    attr_reader   :name, :color, :controls_trade_hub_for, :resources, :development_cards
     attr_accessor :longest_road, :knights_played, :landfalls, :vp_cards_used
     def initialize(name, color)
       @name = name

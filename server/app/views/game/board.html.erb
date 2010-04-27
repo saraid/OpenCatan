@@ -27,16 +27,22 @@
   <% end -%>
   (<%= link_to_function "Roll", "window.location.href = window.location.href + '/roll';" %>)
   (<%= link_to_function "Done", "window.location.href = window.location.href + '/done';" %>)
+  <br />
+  Dev Cards: <%= @player.development_cards.empty?() \
+                  ? "None"                          \
+                  : @player.development_cards.collect { |card| link_to_function card.class.to_s.humanize, "window.location.href = window.location.href + '/play/#{card.id}';" }.join(', ')
+            %> (<%= link_to_function "buy", "window.location.href = window.location.href + '/buy/card';" %>)
 </div>
 <% end %>
 
 <table>
-<tr><th>Player</th><th>VPs</th><th>Resources</th></tr>
+<tr><th>Player</th><th>VPs</th><th>Resources</th><th>Dev Cards</th></tr>
 <% @game.players.each do |player| -%>
 <tr>
 <td><%= player.name %></td>
 <td><%= @game.victory_points[player] || 0 %></td>
 <td><%= player.hand_size %></td>
+<td><%= player.development_cards.length %></td>
 </tr>
 <% end -%>
 </table>

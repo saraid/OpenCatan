@@ -86,7 +86,7 @@ module OpenCatan
 
       # Roll Action
       def roll_dice(player)
-        super
+        raise OpenCatanException, "Already rolled" unless super || @game.setting_up?
         @roll = player.act(Player::Action::Roll.new)
         return if @game.setting_up?
         rolled_a_seven and return if @roll == 7
@@ -328,6 +328,7 @@ module OpenCatan
       @setup_methods[:place_road] += 1
       @placeholder_turn.place_road(*args)
       @game.advance_player unless [@game.players.length, @game.players.length * 2].include? @setup_methods[:place_road]
+      @last_action = { :player => player, :action => :place_road }
     end
 
     def place_boat(*args)
@@ -336,6 +337,7 @@ module OpenCatan
       @setup_methods[:place_road] += 1
       @placeholder_turn.place_boat(*args)
       @game.advance_player unless @game.players.length == @setup_methods[:place_road]
+      @last_action = { :player => player, :action => :place_road }
     end
 
     def spend_gold(*args)
