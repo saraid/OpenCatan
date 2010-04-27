@@ -11,6 +11,7 @@ module OpenCatan
   class Game
     def initialize
       @id = UUIDTools::UUID.random_create.to_s
+      log "Creating game #{@id}"
       @deck = Deck.new
       @dice = Dice.new
       @board = Board.deserialize_from_yaml("lib/catan/sample/meh5x9_num.yml")
@@ -73,7 +74,7 @@ module OpenCatan
     end
 
     def turn_order?
-      if game_actions.length == @players.length
+      if @setup_turn && @setup_turn.done_determining_turn_order?
         rolls = game_actions.collect { |roll_action| roll_action.roll }
         @player_pointer = rolls.index rolls.max
       end
@@ -81,11 +82,11 @@ module OpenCatan
     end
 
     def phase_1_done?
-      @setup_turn.setup_methods[:place_settlement] == @players.length
+      @setup_turn.setup_methods[:place_road] == @players.length
     end
 
     def phase_2_done?
-      @setup_turn.setup_methods[:place_settlement] == (2 * @players.length)
+      @setup_turn.setup_methods[:place_road] == (2 * @players.length)
     end
 
     def current_player
@@ -105,12 +106,13 @@ module OpenCatan
       reverse_pointer and return if game_state == 'placing_settlements_in_reverse'
       @player_pointer = @player_pointer.succ
       @player_pointer = 0 if @player_pointer == @players.length
-      @turns << Player::Turn.new(self) if @turns
+      @turns << Player::Turn.new(self) if @turns && game_state == 'normal_play'
     end
 
     def reverse_pointer
       @player_pointer = @player_pointer - 1
       @player_pointer = @players.length - 1 if @player_pointer == -1
+      return true
     end
 
     def update_road_lengths
@@ -215,5 +217,6 @@ end
 module Kernel
   def log(*args)
     puts(*args)
+    File.open("log/catan.log", 'a') do |f| f.write(args.collect { |x| x.to_s }.join(' ') + "\r\n") end
   end
 end

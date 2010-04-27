@@ -7,7 +7,10 @@
 <% end -%>
 
 <canvas id="board" width="<%= 750 %>" height="<%= 500 %>"></canvas>
-<div id="status">Game Status: <%= @game.game_state.humanize %></div>
+<div id="status">
+  Game Status: <%= @game.game_state.humanize %>; 
+  Current Player: <%= @game.current_player.name unless ['players_joining', 'determining_turn_order'].include? @game.game_state %>;
+</div>
 <table>
 <tr><th>Player</th><th>VPs</th><th>Resources</th></tr>
 <% @game.players.each do |player| -%>

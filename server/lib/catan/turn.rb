@@ -294,27 +294,51 @@ module OpenCatan
 
   class SetupTurn
     def initialize(game)
+      @game = game
       @placeholder_turn = Player::Turn.new(game)
-      @setup_methods = {:roll_dice => 0, :place_settlement => 0, :place_road => nil, :spend_gold => nil}
+      @setup_methods = {:roll_dice => [], :place_settlement => 0, :place_road => 0, :spend_gold => nil}
     end
     attr_reader :setup_methods
 
+    def done_determining_turn_order?
+      @game.players.length == @setup_methods[:roll_dice].length
+    end
+
+    def roll_dice(*args)
+      player = args.first
+      raise OpenCatanException, "Already rolled for turn order" if @setup_methods[:roll_dice].include? player
+      @setup_methods[:roll_dice] << player
+      @placeholder_turn.roll_dice(*args)
+    end
+
+    def place_settlement(*args)
+      player = args.first
+      raise OpenCatanException, "Not your turn" unless player == @game.current_player
+      @setup_methods[:place_settlement] += 1
+      @placeholder_turn.place_settlement(*args)
+      @last_action = { :player => player, :action => :place_settlement }
+    end
+
     def place_road(*args)
+      player = args.first
+      raise OpenCatanException, "Not your turn" unless player == @game.current_player
+      raise OpenCatanException, "Place a settlement first" unless @last_action[:action] == :place_settlement
+      @setup_methods[:place_road] += 1
       @placeholder_turn.place_road(*args)
-      @game.advance_player
+      @game.advance_player unless [@game.players.length, @game.players.length * 2].include? @setup_methods[:place_road]
     end
 
     def place_boat(*args)
+      player = args.first
+      raise OpenCatanException, "Not your turn" if player == @game.current_player
+      @setup_methods[:place_road] += 1
       @placeholder_turn.place_boat(*args)
-      @game.advance_player
+      @game.advance_player unless @game.players.length == @setup_methods[:place_road]
     end
 
-    def method_missing(id, *args, &block)
-      if @setup_methods.keys.include? id
-        @setup_methods[id] += 1 if @setup_methods[id]
-        return @placeholder_turn.send(id, *args, &block)
-      end
-      super
+    def spend_gold(*args)
+      @placeholder_turn.spend_gold(*args)
     end
+
   end
 end

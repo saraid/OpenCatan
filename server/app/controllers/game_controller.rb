@@ -22,6 +22,7 @@ class GameController < ApplicationController
   def start
     return unless @game.players.index(@game.find_player_by_name(session[:user])).zero?
     @game.start_game
+    log "Game #{@game.id} starts with #{@game.players.length} players."
     redirect_to :action => :index, :id => params[:id]
   end
 
@@ -63,6 +64,7 @@ class GameController < ApplicationController
   def join_game
     user = User.find_by_username(session[:user])
     OpenCatan::Player.new(user.username, COLORS[@game.players.length]).join_game(@game)
+    log "#{user.username} joins #{@game.id}"
     # Really ought to save_game this relationship in the database to allow for multiple games in progress
   end
 end
