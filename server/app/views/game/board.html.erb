@@ -13,6 +13,7 @@
   Rolled: <%= @game.current_turn.instance_variable_get :@roll %>
 </div>
 
+<% if @player %>
 <div>
   You have:
   <% @player.resources.each_pair do |resource, amount| -%>
@@ -27,6 +28,7 @@
   (<%= link_to_function "Roll", "window.location.href = window.location.href + '/roll';" %>)
   (<%= link_to_function "Done", "window.location.href = window.location.href + '/done';" %>)
 </div>
+<% end %>
 
 <table>
 <tr><th>Player</th><th>VPs</th><th>Resources</th></tr>
