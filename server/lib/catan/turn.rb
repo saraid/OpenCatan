@@ -96,6 +96,7 @@ module OpenCatan
             log "#{hex} is being robbed!"
             next
           end
+          # TODO: This stuff should go into the Piece subclasses.
           hex.intersections.each do |intersection|
             (case intersection.piece
             when Piece::Settlement
@@ -239,12 +240,21 @@ module OpenCatan
       end
 
       private
+
+      #
+      # Handle Road Building card
+      #
+
       def road_building
         @roads_to_build = 2 if super
       end
       def road_building_done?
         @roads_to_build == 0 || @roads_to_build.nil?
       end
+
+      #
+      # Turn Status
+      #
 
       def check_hand_sizes
         @needs_to_discard ||= {}
@@ -299,7 +309,7 @@ module OpenCatan
       @setup_methods = {:roll_dice => [], :place_settlement => 0, :place_road => 0, :spend_gold => nil}
       @last_action = {}
     end
-    attr_reader :setup_methods
+    attr_reader :setup_methods, :last_action
 
     def done_determining_turn_order?
       @game.players.length == @setup_methods[:roll_dice].length
@@ -327,16 +337,17 @@ module OpenCatan
       raise OpenCatanException, "Place a settlement first" unless @last_action[:action] == :place_settlement
       @setup_methods[:place_road] += 1
       @placeholder_turn.place_road(*args)
-      @game.advance_player unless [@game.players.length, @game.players.length * 2].include? @setup_methods[:place_road]
+      @game.advance_player unless @game.phase_1_done? || @game.phase_2_done?
       @last_action = { :player => player, :action => :place_road }
     end
 
     def place_boat(*args)
       player = args.first
       raise OpenCatanException, "Not your turn" if player == @game.current_player
+      raise OpenCatanException, "Place a settlement first" unless @last_action[:action] == :place_settlement
       @setup_methods[:place_road] += 1
       @placeholder_turn.place_boat(*args)
-      @game.advance_player unless @game.players.length == @setup_methods[:place_road]
+      @game.advance_player unless @game.phase_1_done? || @game.phase_2_done?
       @last_action = { :player => player, :action => :place_road }
     end
 
