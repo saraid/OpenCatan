@@ -51,7 +51,7 @@ $(function(){
   <div id="container">
   <div id="header">
     OpenCatan (v0.001)
-    <div style="float: right;"><%= logged_in?() ? "Logged in as <strong>#{session[:user]}</strong>" : "You should log in." %></div>
+    <div style="float: right;"><%= logged_in?() ? "Logged in as <strong>#{session[:user]}</strong>" : "You should #{ link_to 'log in', :controller => :user, :action => :login }. #{ link_to 'Create account?', :controller => :user, :action => :create}" %></div>
   </div>
   <%= yield %>
   </div>

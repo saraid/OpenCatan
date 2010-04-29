@@ -25,13 +25,14 @@ class UserController < ApplicationController
     user.username = params[:username]
     user.password = Digest::SHA1.hexdigest(params[:password])
     user.save!
-    render :text => params.to_json
+    login_user
+    #render :text => params.to_json
   end
 
   def login_user
     user = User.find_by_username(params[:username])
     render :text => "Fail" and return true unless user.password == Digest::SHA1.hexdigest(params[:password])
     session[:user] = user.username
-    render :text => session[:user]
+    render :text => "#{session[:user]} is now logged in."
   end
 end
