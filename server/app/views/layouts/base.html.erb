@@ -43,7 +43,7 @@
 <% (@javascripts || []).each do |javascript| -%><script type="text/javascript" src="/javascripts/<%= javascript.to_s %>.js"></script><% end %>
 <script type="text/javascript">
 $(function(){
-<% (@onloads || []).each do |block| -%><%= block %>meh<% end -%>
+<% (@onloads || []).each do |block| -%><%= block %><% end -%>
 });
 </script>
 </head>
