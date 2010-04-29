@@ -20,6 +20,7 @@ class UserController < ApplicationController
 
   private
   def create_user
+    raise "Username is taken" if User.find_by_username(params[:username])
     user = User.new
     user.username = params[:username]
     user.password = Digest::SHA1.hexdigest(params[:password])
