@@ -195,7 +195,7 @@ module OpenCatan
       towns = @board.flatten.collect do |hex| hex.intersections.select do |intersection| intersection.piece.present? end end.flatten
       towns.uniq!
       towns.each do |town|
-        @victory_points[town.piece.owner] += case
+        @victory_points[town.piece.owner] += case town.piece
           when Piece::Settlement; 1
           when Piece::City;       2
         end
