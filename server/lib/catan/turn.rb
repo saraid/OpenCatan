@@ -261,6 +261,7 @@ module OpenCatan
         @game.players.each do |player|
           @needs_to_discard[player] = player.hand_size / 2 if player.hand_size >= 7
         end
+        discarding_done if @needs_to_discard.empty?
       end
 
       def roll_result(player, resource)
