@@ -37,7 +37,7 @@ class GameController < ApplicationController
 
   def method_missing(id, *args, &block)
     begin
-      params[:args].collect! do |x| URI.unescape x end
+      params[:args].collect! do |x| URI.unescape x end.compact!
       @game.find_player_by_name(session[:user]).submit_command id, *params[:args]
       @game.current_turn
       #render :text => @game.current_turn.inspect.to_json
