@@ -115,6 +115,7 @@ module OpenCatan
 
       # Done Action
       def done
+        raise TurnStateException, "Waiting for you to roll" unless dice_rolled?
         update_status
         raise TurnStateException, @status if @status != 'ok'
         @current_trade.cancel! if @current_trade
