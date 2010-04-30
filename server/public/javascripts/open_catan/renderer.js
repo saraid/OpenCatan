@@ -213,14 +213,14 @@ OpenCatan.Board.Hex = function(board, json){
       case 'Forest':   context.fillStyle = "rgb( 34, 139,  34)"; img = OpenCatan.Board.Hex.Image.Forest; break;
       case 'Plain':    context.fillStyle = "rgb(  0, 255, 127)"; break;
       case 'Field':    context.fillStyle = "rgb(255, 223,   0)"; break;
-      case 'Mountain': context.fillStyle = "rgb(112, 128, 144)"; break;
+      case 'Mountain': context.fillStyle = "rgb(112, 128, 144)"; img = OpenCatan.Board.Hex.Image.Mountain; break;
       case 'Hill':     context.fillStyle = "rgb(233, 116,  81)"; break;
       case 'Water':    context.fillStyle = "rgb(  0, 127, 255)"; break;
       case 'Mine':     context.fillStyle = "rgb( 47,  79,  79)"; break;
       default:         context.fillStyle = "rgb(255, 255, 255)"; break;
     }
     if (img) {
-      context.drawImage(img, x - 1, y - 1, 102, 88); 
+      context.drawImage(img, x, y, 100, 86); 
     } else {
       context.beginPath();
       var vertices = self.define_vertices(x, y, canvas);
@@ -284,7 +284,8 @@ OpenCatan.Board.Hex = function(board, json){
   };
 };
 OpenCatan.Board.Hex.Image = {
-  'Forest': "/images/forest_tile.png"
+  'Forest': "/images/forest_tile.png",
+  'Mountain': "/images/mountain_tile.png"
 };
 for (var i in OpenCatan.Board.Hex.Image) {
   var img_location = OpenCatan.Board.Hex.Image[i];
