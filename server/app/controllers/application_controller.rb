@@ -8,6 +8,8 @@ class ApplicationController < ActionController::Base
   # Scrub sensitive parameters from your log
   # filter_parameter_logging :password
 
+  layout 'base', :only => [:index]
+
   def logged_in?
     session[:user].present?
   end
