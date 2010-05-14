@@ -207,7 +207,7 @@ OpenCatan.Board.Hex = function(board, json){
     var hex_width = canvas.hex_width;
     var x = self.draw_attributes.x;
     var y = self.draw_attributes.y;
-    var img = null;
+    var img = OpenCatan.Board.Hex.Image[self.type];
     switch(self.type){
       case 'Desert':   context.fillStyle = "rgb(255, 222, 173)"; break;
       case 'Forest':   context.fillStyle = "rgb( 34, 139,  34)"; img = OpenCatan.Board.Hex.Image.Forest; break;
@@ -284,8 +284,10 @@ OpenCatan.Board.Hex = function(board, json){
   };
 };
 OpenCatan.Board.Hex.Image = {
-  'Forest': "/images/forest_tile.png",
-  'Mountain': "/images/mountain_tile.png"
+  'Desert':   "/images/desert_tile.png",
+  'Forest':   "/images/forest_tile.png",
+  'Mountain': "/images/mountain_tile.png",
+  'Water':    "/images/water_tile.png"
 };
 for (var i in OpenCatan.Board.Hex.Image) {
   var img_location = OpenCatan.Board.Hex.Image[i];
